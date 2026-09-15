@@ -13,11 +13,6 @@
       "database_id": "owntheglass-db-id"
     }
   ],
-  "triggers": {
-    "crons": [
-      "0 */6 * * *"
-    ]
-  },
   "vars": {
     "APP_NAME": "OwnTheGlass",
     "APP_URL": "https://owntheglass.com"

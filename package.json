@@ -11,7 +11,8 @@
     "astro": "astro",
     "d1:migrate:local": "wrangler d1 migrations apply DB --local",
     "d1:migrate:remote": "wrangler d1 migrations apply DB --remote",
-    "seed:local": "node scripts/seed_db.mjs"
+    "seed:local": "node scripts/seed_db.mjs",
+    "deploy": "wrangler pages deploy dist --project-name owntheglass"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.2.0",

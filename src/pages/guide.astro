@@ -1,0 +1,257 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+export const prerender = true;
+---
+
+<Layout
+  title="Interactive Offline USB Flashing Guide — OwnTheGlass"
+  description="Step-by-step interactive instructions to safely update your TV firmware via USB flash drive without connecting to Wi-Fi or the internet."
+>
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950 border border-cyan-800 text-cyan-300 text-xs font-semibold mb-4">
+        <span>💾</span>
+        <span>Offline Flashing Protocol</span>
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight mb-4">
+        How to Install TV Firmware via USB Drive
+      </h1>
+      <p class="text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
+        Update your TV with zero network connectivity. Follow this foolproof interactive checklist to prepare your USB flash drive and flash your display safely.
+      </p>
+    </div>
+
+    <!-- Live Interactive Checklist Card -->
+    <div class="bg-[#121622] border border-slate-800 rounded-2xl p-6 sm:p-8 mb-12 shadow-2xl relative overflow-hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-800">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>📋</span>
+            <span>Pre-Flight Preparation Checklist</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Click each step as you complete it before plugging into your TV.</p>
+        </div>
+
+        <div class="text-right">
+          <div class="text-xs font-semibold text-slate-400 mb-1">
+            Progress: <span id="checklist-counter" class="text-emerald-400 font-mono">0/6</span>
+          </div>
+          <div class="w-36 h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+            <div id="checklist-progress-bar" class="h-full bg-emerald-500 transition-all duration-300 w-0"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Checklist Items -->
+      <div class="space-y-3" id="checklist-container">
+        <label class="flex items-start gap-3.5 p-3 rounded-xl bg-[#0A0D15] border border-slate-800/80 hover:border-slate-700 cursor-pointer transition select-none">
+          <input type="checkbox" class="checklist-item mt-0.5 w-4 h-4 rounded text-emerald-500 bg-slate-900 border-slate-700 focus:ring-emerald-500 focus:ring-offset-slate-900" />
+          <div>
+            <div class="text-sm font-semibold text-white">1. Obtain a USB Flash Drive (minimum 4GB)</div>
+            <div class="text-xs text-slate-400 mt-0.5">A standard USB 2.0 or 3.0 flash drive is recommended.</div>
+          </div>
+        </label>
+
+        <label class="flex items-start gap-3.5 p-3 rounded-xl bg-[#0A0D15] border border-slate-800/80 hover:border-slate-700 cursor-pointer transition select-none">
+          <input type="checkbox" class="checklist-item mt-0.5 w-4 h-4 rounded text-emerald-500 bg-slate-900 border-slate-700 focus:ring-emerald-500 focus:ring-offset-slate-900" />
+          <div>
+            <div class="text-sm font-semibold text-white">2. Format USB Drive as FAT32 or NTFS</div>
+            <div class="text-xs text-slate-400 mt-0.5">
+              <strong class="text-rose-400">Critical:</strong> LG webOS does <em>NOT</em> recognize <code>exFAT</code>, <code>APFS</code>, or <code>ext4</code>. Ensure it is FAT32 or NTFS.
+            </div>
+          </div>
+        </label>
+
+        <label class="flex items-start gap-3.5 p-3 rounded-xl bg-[#0A0D15] border border-slate-800/80 hover:border-slate-700 cursor-pointer transition select-none">
+          <input type="checkbox" class="checklist-item mt-0.5 w-4 h-4 rounded text-emerald-500 bg-slate-900 border-slate-700 focus:ring-emerald-500 focus:ring-offset-slate-900" />
+          <div>
+            <div class="text-sm font-semibold text-white">3. Create root folder named exactly <code>LG_DTV</code></div>
+            <div class="text-xs text-slate-400 mt-0.5">
+              In the top-level root directory of the flash drive, create a folder named <code>LG_DTV</code> (all caps, with underscore).
+            </div>
+          </div>
+        </label>
+
+        <label class="flex items-start gap-3.5 p-3 rounded-xl bg-[#0A0D15] border border-slate-800/80 hover:border-slate-700 cursor-pointer transition select-none">
+          <input type="checkbox" class="checklist-item mt-0.5 w-4 h-4 rounded text-emerald-500 bg-slate-900 border-slate-700 focus:ring-emerald-500 focus:ring-offset-slate-900" />
+          <div>
+            <div class="text-sm font-semibold text-white">4. Download and Extract the Official Firmware ZIP</div>
+            <div class="text-xs text-slate-400 mt-0.5">
+              Download the official <code>.zip</code> package from the OwnTheGlass catalog, unzip it, and locate the <code>.epk</code> firmware file inside.
+            </div>
+          </div>
+        </label>
+
+        <label class="flex items-start gap-3.5 p-3 rounded-xl bg-[#0A0D15] border border-slate-800/80 hover:border-slate-700 cursor-pointer transition select-none">
+          <input type="checkbox" class="checklist-item mt-0.5 w-4 h-4 rounded text-emerald-500 bg-slate-900 border-slate-700 focus:ring-emerald-500 focus:ring-offset-slate-900" />
+          <div>
+            <div class="text-sm font-semibold text-white">5. Place the <code>.epk</code> file inside <code>LG_DTV</code></div>
+            <div class="text-xs text-slate-400 mt-0.5">
+              Copy the <code>.epk</code> file directly into the <code>LG_DTV</code> folder (do NOT put the .zip file itself inside).
+            </div>
+          </div>
+        </label>
+
+        <label class="flex items-start gap-3.5 p-3 rounded-xl bg-[#0A0D15] border border-slate-800/80 hover:border-slate-700 cursor-pointer transition select-none">
+          <input type="checkbox" class="checklist-item mt-0.5 w-4 h-4 rounded text-emerald-500 bg-slate-900 border-slate-700 focus:ring-emerald-500 focus:ring-offset-slate-900" />
+          <div>
+            <div class="text-sm font-semibold text-white">6. Safely Eject the USB Flash Drive</div>
+            <div class="text-xs text-slate-400 mt-0.5">
+              Safely unmount / eject from your Mac or PC to ensure the file buffer is completely written.
+            </div>
+          </div>
+        </label>
+      </div>
+
+      <!-- Ready Banner -->
+      <div id="ready-banner" class="hidden mt-6 p-4 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-sm font-semibold flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span>🚀</span>
+          <span>Drive verified! You are ready to plug it into your TV.</span>
+        </div>
+        <a href="#tv-installation-steps" class="underline text-xs">Jump to TV Steps ↓</a>
+      </div>
+    </div>
+
+    <!-- Step-by-Step Instructions -->
+    <div id="tv-installation-steps" class="space-y-8">
+      <h2 class="text-2xl font-black text-white tracking-tight border-b border-slate-800 pb-4">
+        Detailed Step-by-Step Walkthrough
+      </h2>
+
+      <!-- Step 1 -->
+      <div class="bg-[#10141E] border border-slate-800 rounded-xl p-6">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="w-7 h-7 rounded-full bg-emerald-500 text-black font-bold flex items-center justify-center text-xs">1</span>
+          <h3 class="text-lg font-bold text-white">Format the USB Flash Drive</h3>
+        </div>
+        <p class="text-sm text-slate-300 leading-relaxed mb-3">
+          Format the flash drive on your computer using <strong>FAT32</strong> (recommended for all systems) or <strong>NTFS</strong> (Windows).
+        </p>
+        <div class="bg-[#090A0F] border border-slate-800 rounded-lg p-3 text-xs text-slate-400 font-mono space-y-1">
+          <div><strong class="text-cyan-400">Windows:</strong> Right click USB drive → Format → File System: FAT32 (or NTFS) → Start.</div>
+          <div><strong class="text-cyan-400">macOS:</strong> Open Disk Utility → Select USB Drive → Erase → Format: MS-DOS (FAT) → Scheme: Master Boot Record.</div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="bg-[#10141E] border border-slate-800 rounded-xl p-6">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="w-7 h-7 rounded-full bg-emerald-500 text-black font-bold flex items-center justify-center text-xs">2</span>
+          <h3 class="text-lg font-bold text-white">Create the Root <code>LG_DTV</code> Folder</h3>
+        </div>
+        <p class="text-sm text-slate-300 leading-relaxed mb-3">
+          LG webOS TVs scan specifically for a top-level directory named <code>LG_DTV</code>. If the folder is misspelled or placed inside a subfolder, the TV will completely ignore the firmware.
+        </p>
+        <div class="bg-[#090A0F] border border-slate-800 rounded-lg p-3 text-xs text-slate-300 font-mono">
+          USB_ROOT/<br />
+          └── <span class="text-emerald-400 font-bold">LG_DTV/</span><br />
+          &nbsp;&nbsp;&nbsp;&nbsp;└── <span class="text-cyan-400">starfish-atsc-secured-m20-....epk</span>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="bg-[#10141E] border border-slate-800 rounded-xl p-6">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="w-7 h-7 rounded-full bg-emerald-500 text-black font-bold flex items-center justify-center text-xs">3</span>
+          <h3 class="text-lg font-bold text-white">Insert into TV USB Port</h3>
+        </div>
+        <p class="text-sm text-slate-300 leading-relaxed mb-3">
+          Turn your TV ON. Plug the prepared USB drive into any available USB port on the back or side of the TV.
+        </p>
+        <div class="bg-cyan-950/30 border border-cyan-500/30 rounded-lg p-4 text-xs text-cyan-300 leading-relaxed">
+          💡 <strong>What should happen:</strong> Within 5 to 15 seconds, a pop-up window will automatically appear on screen reading:
+          <div class="italic font-serif text-sm text-white mt-1">"A software update file has been found. Do you want to update software to version [X.XX.XX]?"</div>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="bg-[#10141E] border border-slate-800 rounded-xl p-6">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="w-7 h-7 rounded-full bg-emerald-500 text-black font-bold flex items-center justify-center text-xs">4</span>
+          <h3 class="text-lg font-bold text-white">Initiate Update & Do Not Unplug</h3>
+        </div>
+        <p class="text-sm text-slate-300 leading-relaxed mb-3">
+          Select <strong>"Update"</strong> or <strong>"Yes"</strong> using your remote control.
+        </p>
+        <div class="bg-amber-950/40 border border-amber-500/30 rounded-lg p-4 text-xs text-amber-300 leading-relaxed">
+          ⚠️ <strong>Crucial Warning:</strong> Do NOT turn off the TV, disconnect power, or remove the USB drive while the update is installing. The TV will restart automatically once the installation completes.
+        </div>
+      </div>
+    </div>
+
+    <!-- Troubleshooting FAQ -->
+    <div class="mt-16 border-t border-slate-800 pt-12">
+      <h2 class="text-2xl font-black text-white tracking-tight mb-6">Frequently Asked Questions & Troubleshooting</h2>
+      
+      <div class="space-y-4">
+        <details class="bg-[#10141E] border border-slate-800 rounded-xl p-4 cursor-pointer group">
+          <summary class="text-sm font-bold text-white flex items-center justify-between">
+            <span>Why doesn't the TV display the update prompt when I plug in the USB?</span>
+            <span class="text-slate-500 group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <div class="text-xs text-slate-400 mt-3 leading-relaxed space-y-2 border-t border-slate-800/60 pt-3">
+            <p>1. Check the file system: webOS does NOT support <strong>exFAT</strong> or <strong>APFS</strong>. Format the drive as FAT32 or NTFS.</p>
+            <p>2. Verify folder name: It must be exactly <code>LG_DTV</code> in capital letters at the drive root.</p>
+            <p>3. Verify file type: Make sure you unzipped the downloaded file and placed the <code>.epk</code> file inside <code>LG_DTV</code> (not the .zip file).</p>
+            <p>4. Try a different USB port on the TV.</p>
+          </div>
+        </details>
+
+        <details class="bg-[#10141E] border border-slate-800 rounded-xl p-4 cursor-pointer group">
+          <summary class="text-sm font-bold text-white flex items-center justify-between">
+            <span>Does updating via USB turn Wi-Fi or tracking back on?</span>
+            <span class="text-slate-500 group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <div class="text-xs text-slate-400 mt-3 leading-relaxed border-t border-slate-800/60 pt-3">
+            <p>No. If your TV has never joined your Wi-Fi network (or you chose "Forget Network"), firmware flashing does not magically connect to Wi-Fi. Your TV remains completely air-gapped.</p>
+          </div>
+        </details>
+
+        <details class="bg-[#10141E] border border-slate-800 rounded-xl p-4 cursor-pointer group">
+          <summary class="text-sm font-bold text-white flex items-center justify-between">
+            <span>Can I downgrade to an older firmware release?</span>
+            <span class="text-slate-500 group-open:rotate-180 transition-transform">▼</span>
+          </summary>
+          <div class="text-xs text-slate-400 mt-3 leading-relaxed border-t border-slate-800/60 pt-3">
+            <p>Standard official webOS firmware will reject flashing if the firmware on the USB is older than or equal to the firmware currently installed on the TV. Firmware updates are forward-only.</p>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  function initChecklist() {
+    const checkboxes = document.querySelectorAll('.checklist-item') as NodeListOf<HTMLInputElement>;
+    const counterEl = document.getElementById('checklist-counter');
+    const progressBar = document.getElementById('checklist-progress-bar');
+    const readyBanner = document.getElementById('ready-banner');
+
+    function updateProgress() {
+      let checked = 0;
+      checkboxes.forEach((cb) => {
+        if (cb.checked) checked++;
+      });
+
+      const total = checkboxes.length;
+      if (counterEl) counterEl.textContent = `${checked}/${total}`;
+      const pct = (checked / total) * 100;
+      if (progressBar) progressBar.style.width = `${pct}%`;
+
+      if (checked === total) {
+        readyBanner?.classList.remove('hidden');
+      } else {
+        readyBanner?.classList.add('hidden');
+      }
+    }
+
+    checkboxes.forEach((cb) => cb.addEventListener('change', updateProgress));
+  }
+
+  document.addEventListener('DOMContentLoaded', initChecklist);
+  document.addEventListener('astro:page-load', initChecklist);
+</script>

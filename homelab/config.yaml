@@ -1,0 +1,26 @@
+server:
+  host: 0.0.0.0
+  port: 8484
+scheduler:
+  interval_hours: 6
+  run_on_startup: true
+ntfy:
+  enabled: true
+  server_url: https://ntfy.sh
+  topic: chris-lg-tv-firmware
+  token: ''
+  priority: default
+  notify_on_startup: true
+devices:
+- id: lg-cx
+  name: LG OLED CX (2020)
+  model_code: OLED65CXPUA.AUS
+  support_url: https://www.lg.com/us/support/product/lg-OLED65CXPUA.AUS
+  region: US
+  enabled: true
+- id: lg-b4
+  name: LG OLED B4 (2024)
+  model_code: OLED77B4PUA.AUS
+  support_url: https://www.lg.com/us/support/product/lg-OLED77B4PUA.AUS
+  region: US
+  enabled: true

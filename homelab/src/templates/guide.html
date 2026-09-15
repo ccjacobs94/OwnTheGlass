@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block title %}LG TV USB Firmware Installation Guide | LG TV Firmware Monitor{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8">
+
+    <!-- Header / Breadcrumbs -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-6">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="/" class="hover:text-red-400 transition flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Dashboard
+                </a>
+                <span>&bull;</span>
+                <span class="text-slate-300">Installation Guide</span>
+            </div>
+            <h1 class="text-2xl font-bold text-white flex items-center gap-2.5">
+                <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                </svg>
+                How to Install LG TV Firmware via USB Drive
+            </h1>
+            <p class="text-sm text-slate-400 mt-1">
+                Step-by-step instructions for updating your LG OLED TV (CX, B4, and other webOS models) using a USB flash drive.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-2 flex-shrink-0">
+            <a href="https://www.lg.com/ca_en/support/product-support/troubleshoot/help-library/cs-CT52001643-20151803889491/" target="_blank" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-red-950/70 hover:bg-red-900/60 text-red-300 border border-red-800/80 transition">
+                <span>Official LG Guide</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+            </a>
+            <a href="/" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+                Return to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Prerequisites Card -->
+    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-md">
+        <h2 class="text-base font-bold text-white flex items-center gap-2 mb-4">
+            <span class="w-6 h-6 rounded-lg bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center justify-center text-xs">✓</span>
+            Prerequisites
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-4">
+                <div class="font-semibold text-slate-200 text-sm mb-1 flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                    USB Flash Drive
+                </div>
+                <p class="text-slate-400">
+                    At least <strong class="text-slate-200">4 GB</strong> capacity, formatted with <strong class="text-emerald-400 font-mono">FAT32</strong> or <strong class="text-emerald-400 font-mono">NTFS</strong>. Avoid exFAT/APFS.
+                </p>
+            </div>
+
+            <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-4">
+                <div class="font-semibold text-slate-200 text-sm mb-1 flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Firmware Archive
+                </div>
+                <p class="text-slate-400">
+                    Downloaded <strong class="text-slate-200">.zip</strong> package from this monitor's dashboard or official LG support.
+                </p>
+            </div>
+
+            <div class="bg-slate-950/80 border border-slate-800/80 rounded-xl p-4">
+                <div class="font-semibold text-slate-200 text-sm mb-1 flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    Stable Power
+                </div>
+                <p class="text-slate-400">
+                    Do not power off TV or unplug USB while update is running (takes approx. <strong class="text-slate-200">5-15 mins</strong>).
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step by Step Guide -->
+    <div class="space-y-6">
+
+        <!-- Step 1 -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
+            <div class="flex items-start gap-4">
+                <span class="flex-shrink-0 w-8 h-8 rounded-xl bg-red-600/20 text-red-400 border border-red-800 flex items-center justify-center font-bold text-sm">
+                    1
+                </span>
+                <div class="space-y-2 flex-1">
+                    <h3 class="text-base font-bold text-white">Download Firmware & Format USB Flash Drive</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Download the latest firmware archive (e.g. <span class="font-mono text-red-400">Software_File(Version_xx.xx.xx).zip</span>) for your TV model using the <strong class="text-white">Download Firmware</strong> button on the dashboard.
+                    </p>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Plug your USB drive into your PC or Mac. Make sure it is formatted as <strong class="text-slate-200 font-mono">FAT32</strong> or <strong class="text-slate-200 font-mono">NTFS</strong>.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
+            <div class="flex items-start gap-4">
+                <span class="flex-shrink-0 w-8 h-8 rounded-xl bg-red-600/20 text-red-400 border border-red-800 flex items-center justify-center font-bold text-sm">
+                    2
+                </span>
+                <div class="space-y-3 flex-1">
+                    <h3 class="text-base font-bold text-white">Create the <span class="font-mono text-red-400">LG_DTV</span> Folder on the USB Root</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        In the root directory of your USB flash drive (top level, NOT inside another folder), create a new folder named exactly:
+                    </p>
+                    <div class="flex items-center gap-3 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 w-fit">
+                        <span class="text-xs text-slate-500 font-mono">Folder Name:</span>
+                        <code class="font-mono font-bold text-red-400 text-sm" id="folderNameCode">LG_DTV</code>
+                        <button onclick="copyToClipboard('LG_DTV', 'folderCopiedToast')" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1 rounded-lg border border-slate-700 transition flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            </svg>
+                            <span id="folderCopiedToast">Copy</span>
+                        </button>
+                    </div>
+                    <div class="text-[11px] text-amber-400/90 flex items-center gap-1.5 bg-amber-950/30 border border-amber-900/40 px-3 py-2 rounded-lg">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <span><strong>Important:</strong> The folder name must be uppercase <code>LG_DTV</code>. LG webOS will not detect the update if it's named lowercase or misspelled.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
+            <div class="flex items-start gap-4">
+                <span class="flex-shrink-0 w-8 h-8 rounded-xl bg-red-600/20 text-red-400 border border-red-800 flex items-center justify-center font-bold text-sm">
+                    3
+                </span>
+                <div class="space-y-3 flex-1">
+                    <h3 class="text-base font-bold text-white">Extract the <span class="font-mono text-red-400">.epk</span> File into <span class="font-mono text-red-400">LG_DTV</span></h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Unzip / extract the downloaded zip file on your computer. Inside you will find a file ending with the <span class="font-mono text-slate-200">.epk</span> extension (e.g. <span class="font-mono text-slate-400">starfish-dvb-secured-m24-33.31.75...epk</span>).
+                    </p>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Copy that <strong class="text-white">.epk</strong> file directly into the <strong class="text-white font-mono">LG_DTV</strong> folder on the USB drive. Do NOT rename the file.
+                    </p>
+
+                    <!-- Directory Structure ASCII -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs text-slate-300">
+                        <div class="text-slate-500 mb-1">// Correct USB Drive Structure:</div>
+                        <div>USB Flash Drive /</div>
+                        <div class="pl-4">└── <span class="text-red-400 font-bold">LG_DTV</span> /</div>
+                        <div class="pl-10 text-emerald-400">└── starfish-...-33.31.75.epk <span class="text-slate-500 font-sans text-[11px]">(Extracted firmware file)</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
+            <div class="flex items-start gap-4">
+                <span class="flex-shrink-0 w-8 h-8 rounded-xl bg-red-600/20 text-red-400 border border-red-800 flex items-center justify-center font-bold text-sm">
+                    4
+                </span>
+                <div class="space-y-2 flex-1">
+                    <h3 class="text-base font-bold text-white">Insert USB Drive into LG TV</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Safely eject the USB drive from your computer and plug it into any available USB port on your LG TV (located on the side or rear connectivity panel).
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
+            <div class="flex items-start gap-4">
+                <span class="flex-shrink-0 w-8 h-8 rounded-xl bg-red-600/20 text-red-400 border border-red-800 flex items-center justify-center font-bold text-sm">
+                    5
+                </span>
+                <div class="space-y-3 flex-1">
+                    <h3 class="text-base font-bold text-white">Acknowledge Prompts & Start Installation</h3>
+                    <div class="space-y-2 text-xs text-slate-300 leading-relaxed">
+                        <div class="flex items-start gap-2">
+                            <span class="text-red-400 font-bold">•</span>
+                            <span>
+                                If a <strong class="text-white">"USB CONNECTED"</strong> media prompt appears asking to view files or photos, select <strong class="text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-700">Stay</strong> (do not open media player).
+                            </span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-red-400 font-bold">•</span>
+                            <span>
+                                Within a few seconds, the TV will automatically recognize the firmware file and display a <strong class="text-white">"Software Update"</strong> dialogue stating that a newer version was found.
+                            </span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-red-400 font-bold">•</span>
+                            <span>
+                                Select <strong class="text-white bg-red-950 px-2 py-0.5 rounded border border-red-800 text-red-300">Install</strong> or <strong class="text-white bg-red-950 px-2 py-0.5 rounded border border-red-800 text-red-300">Yes</strong> to begin the installation.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 relative overflow-hidden">
+            <div class="flex items-start gap-4">
+                <span class="flex-shrink-0 w-8 h-8 rounded-xl bg-red-600/20 text-red-400 border border-red-800 flex items-center justify-center font-bold text-sm">
+                    6
+                </span>
+                <div class="space-y-3 flex-1">
+                    <h3 class="text-base font-bold text-white">Monitor Progress & Automatic Reboot</h3>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        The TV will copy the package and install the firmware. To view the live progress percentage bar:
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 font-semibold block mb-1">On LG OLED CX (webOS 5.0)</span>
+                            <span class="font-mono text-slate-300">Settings ⚙️ &rarr; All Settings &rarr; General &rarr; About This TV</span>
+                        </div>
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                            <span class="text-slate-400 font-semibold block mb-1">On LG OLED B4 (webOS 24)</span>
+                            <span class="font-mono text-slate-300">Settings ⚙️ &rarr; All Settings &rarr; Support &rarr; Software Update</span>
+                        </div>
+                    </div>
+
+                    <div class="p-3 bg-red-950/40 border border-red-900/60 rounded-xl text-xs text-red-300 flex items-start gap-2">
+                        <svg class="w-5 h-5 flex-shrink-0 text-red-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <span>
+                            <strong>WARNING:</strong> DO NOT turn off the TV, disconnect the power cord, or pull out the USB flash drive until the update completes and the TV restarts automatically.
+                        </span>
+                    </div>
+
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        When the progress reaches 100%, the TV will automatically restart within 5 seconds. After rebooting, a notification will state: <em class="text-emerald-400">"Software update is complete."</em>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Troubleshooting FAQ -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-md">
+        <h2 class="text-base font-bold text-white flex items-center gap-2 mb-4">
+            <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Troubleshooting FAQ
+        </h2>
+        <div class="space-y-4 text-xs">
+            <details class="bg-slate-950 p-4 rounded-xl border border-slate-800 group">
+                <summary class="font-semibold text-slate-200 cursor-pointer flex items-center justify-between">
+                    <span>The TV does not detect the firmware on the USB drive</span>
+                    <svg class="w-4 h-4 text-slate-400 transition group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </summary>
+                <div class="mt-3 space-y-2 text-slate-400 border-t border-slate-800/80 pt-3">
+                    <p>1. <strong>Folder Name:</strong> Verify the folder at the root of the USB drive is named exactly <code class="text-red-400 font-bold">LG_DTV</code> (all caps with underscore).</p>
+                    <p>2. <strong>File Unzipped:</strong> Ensure you placed the unzipped <code class="text-emerald-400 font-bold">.epk</code> file inside <code class="text-red-400">LG_DTV</code>, NOT the <code class="text-slate-300">.zip</code> archive.</p>
+                    <p>3. <strong>Filesystem:</strong> LG TVs cannot read exFAT, APFS, or ext4. Reformat the USB drive to FAT32 or NTFS on a computer.</p>
+                    <p>4. <strong>USB Port:</strong> Try plugging into another USB port on the TV, or avoid using unpowered USB extension cables.</p>
+                </div>
+            </details>
+
+            <details class="bg-slate-950 p-4 rounded-xl border border-slate-800 group">
+                <summary class="font-semibold text-slate-200 cursor-pointer flex items-center justify-between">
+                    <span>Can I downgrade to an older firmware version?</span>
+                    <svg class="w-4 h-4 text-slate-400 transition group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </summary>
+                <div class="mt-3 text-slate-400 border-t border-slate-800/80 pt-3">
+                    <p>Standard retail webOS does not permit downgrading to an older software version via USB. The TV will only prompt to install if the version on the USB key is strictly newer than the currently installed version.</p>
+                </div>
+            </details>
+
+            <details class="bg-slate-950 p-4 rounded-xl border border-slate-800 group">
+                <summary class="font-semibold text-slate-200 cursor-pointer flex items-center justify-between">
+                    <span>How do I check my TV's exact model number?</span>
+                    <svg class="w-4 h-4 text-slate-400 transition group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </summary>
+                <div class="mt-3 text-slate-400 border-t border-slate-800/80 pt-3">
+                    <p>Press the <strong>Settings (gear)</strong> button on your Magic Remote &rarr; <strong>All Settings</strong> &rarr; <strong>General</strong> (or <strong>Support</strong>) &rarr; <strong>About this TV</strong> &rarr; <strong>TV Information</strong>. The full product model string (e.g. <code class="text-red-400 font-mono">OLED77B4PUA.AUS</code>) is listed there.</p>
+                </div>
+            </details>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function copyToClipboard(text, elementId) {
+        navigator.clipboard.writeText(text).then(() => {
+            const el = document.getElementById(elementId);
+            if (el) {
+                const orig = el.textContent;
+                el.textContent = 'Copied!';
+                setTimeout(() => { el.textContent = orig; }, 2000);
+            }
+        });
+    }
+</script>
+{% endblock %}

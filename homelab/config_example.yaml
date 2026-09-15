@@ -1,0 +1,40 @@
+# LG TV Firmware Monitor & NTFY Notifier Configuration
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+
+scheduler:
+  # Interval between automated background firmware checks (in hours)
+  interval_hours: 6
+  # Run a check immediately when the application starts
+  run_on_startup: true
+
+ntfy:
+  enabled: true
+  # Base URL for NTFY (default: public ntfy.sh server)
+  server_url: "https://ntfy.sh"
+  # Change this to your private/unique NTFY topic name!
+  # You can subscribe to this topic on your phone using the ntfy app (ntfy.sh/app)
+  topic: "lg-firmware-alerts-homelab"
+  # Optional bearer auth token (leave empty if using standard open topic)
+  token: ""
+  # Default notification priority: 'min', 'low', 'default', 'high', 'urgent'
+  priority: "default"
+  # Notify on startup with current baseline version found
+  notify_on_startup: true
+
+devices:
+  - id: "lg-cx"
+    name: "LG OLED CX (2020)"
+    model_code: "OLED65CXPUA.AUS"
+    support_url: "https://www.lg.com/us/support/product/lg-OLED65CXPUA.AUS"
+    region: "US"
+    enabled: true
+
+  - id: "lg-b4"
+    name: "LG OLED B4 (2024)"
+    model_code: "OLED77B4PUA.AUS"
+    support_url: "https://www.lg.com/us/support/product/lg-OLED77B4PUA.AUS"
+    region: "US"
+    enabled: true

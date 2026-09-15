@@ -1,0 +1,98 @@
+[
+  {
+    "id": "lg-oled65cxpua-aus",
+    "brand": "LG",
+    "series": "LG OLED CX (2020)",
+    "name": "LG OLED CX 65-inch 4K Smart TV",
+    "model_code": "OLED65CXPUA.AUS",
+    "support_url": "https://www.lg.com/us/support/product/lg-OLED65CXPUA.AUS",
+    "latest_version": "04.64.00",
+    "release_date": "10/28/2025",
+    "file_size": "1,032,154K",
+    "download_url": "https://gscs-b2c.lge.com/downloadFile?fileId=kM0J2uN0z3aGvN7X"
+  },
+  {
+    "id": "lg-oled77b4pua-aus",
+    "brand": "LG",
+    "series": "LG OLED B4 (2024)",
+    "name": "LG OLED B4 77-inch 4K Smart TV",
+    "model_code": "OLED77B4PUA.AUS",
+    "support_url": "https://www.lg.com/us/support/product/lg-OLED77B4PUA.AUS",
+    "latest_version": "33.31.68",
+    "release_date": "08/14/2026",
+    "file_size": "1,452,890K",
+    "download_url": "https://gscs-b2c.lge.com/downloadFile?fileId=wN8K4pL2m5bVxY9Z"
+  },
+  {
+    "id": "lg-oled65c4pua-aus",
+    "brand": "LG",
+    "series": "LG OLED C4 (2024)",
+    "name": "LG OLED C4 65-inch evo 4K Smart TV",
+    "model_code": "OLED65C4PUA.AUS",
+    "support_url": "https://www.lg.com/us/support/product/lg-OLED65C4PUA.AUS",
+    "latest_version": "33.31.70",
+    "release_date": "09/02/2026",
+    "file_size": "1,460,110K",
+    "download_url": "https://gscs-b2c.lge.com/downloadFile?fileId=c4firmwarefileid"
+  },
+  {
+    "id": "lg-oled65c3pua-aus",
+    "brand": "LG",
+    "series": "LG OLED C3 (2023)",
+    "name": "LG OLED C3 65-inch evo 4K Smart TV",
+    "model_code": "OLED65C3PUA.AUS",
+    "support_url": "https://www.lg.com/us/support/product/lg-OLED65C3PUA.AUS",
+    "latest_version": "03.33.65",
+    "release_date": "07/19/2026",
+    "file_size": "1,320,440K",
+    "download_url": "https://gscs-b2c.lge.com/downloadFile?fileId=c3firmwarefileid"
+  },
+  {
+    "id": "lg-oled65c2pua-aus",
+    "brand": "LG",
+    "series": "LG OLED C2 (2022)",
+    "name": "LG OLED C2 65-inch evo 4K Smart TV",
+    "model_code": "OLED65C2PUA.AUS",
+    "support_url": "https://www.lg.com/us/support/product/lg-OLED65C2PUA.AUS",
+    "latest_version": "13.30.82",
+    "release_date": "06/11/2026",
+    "file_size": "1,290,000K",
+    "download_url": "https://gscs-b2c.lge.com/downloadFile?fileId=c2firmwarefileid"
+  },
+  {
+    "id": "lg-oled65c1pub-aus",
+    "brand": "LG",
+    "series": "LG OLED C1 (2021)",
+    "name": "LG OLED C1 65-inch 4K Smart TV",
+    "model_code": "OLED65C1PUB.AUS",
+    "support_url": "https://www.lg.com/us/support/product/lg-OLED65C1PUB.AUS",
+    "latest_version": "03.40.85",
+    "release_date": "05/20/2026",
+    "file_size": "1,180,000K",
+    "download_url": "https://gscs-b2c.lge.com/downloadFile?fileId=c1firmwarefileid"
+  },
+  {
+    "id": "lg-oled65g4sub-aus",
+    "brand": "LG",
+    "series": "LG OLED G4 (2024)",
+    "name": "LG OLED G4 65-inch evo Gallery Edition",
+    "model_code": "OLED65G4SUB.AUS",
+    "support_url": "https://www.lg.com/us/support/product/lg-OLED65G4SUB.AUS",
+    "latest_version": "33.31.70",
+    "release_date": "09/02/2026",
+    "file_size": "1,460,110K",
+    "download_url": "https://gscs-b2c.lge.com/downloadFile?fileId=g4firmwarefileid"
+  },
+  {
+    "id": "lg-oled65g3pua-aus",
+    "brand": "LG",
+    "series": "LG OLED G3 (2023)",
+    "name": "LG OLED G3 65-inch evo Gallery Edition",
+    "model_code": "OLED65G3PUA.AUS",
+    "support_url": "https://www.lg.com/us/support/product/lg-OLED65G3PUA.AUS",
+    "latest_version": "03.33.65",
+    "release_date": "07/19/2026",
+    "file_size": "1,320,440K",
+    "download_url": "https://gscs-b2c.lge.com/downloadFile?fileId=g3firmwarefileid"
+  }
+]

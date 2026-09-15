@@ -1,0 +1,130 @@
+---
+import type { ModelRecord } from '../lib/db';
+
+interface Props {
+  model: ModelRecord;
+}
+
+const { model } = Astro.props;
+---
+
+<div
+  class="bg-[#10141E] border border-slate-800/80 hover:border-emerald-500/40 rounded-xl p-5 flex flex-col justify-between transition-all duration-200 hover:shadow-xl hover:shadow-emerald-950/20 group relative"
+  data-model-id={model.id}
+  data-model-name={model.name}
+  data-model-code={model.model_code}
+  data-brand={model.brand}
+>
+  <!-- Card Header -->
+  <div>
+    <div class="flex items-start justify-between gap-3 mb-3">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700/60">
+          {model.brand}
+        </span>
+        {model.series && (
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-cyan-950/60 text-cyan-400 border border-cyan-800/40">
+            {model.series}
+          </span>
+        )}
+      </div>
+
+      <!-- Air-Gap Badge -->
+      <span
+        title="Ready for air-gapped offline USB installation"
+        class="text-[10px] font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1"
+      >
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        USB Ready
+      </span>
+    </div>
+
+    <!-- Product Title & Code -->
+    <a href={`/models/${model.id}`} class="block group-hover:text-emerald-300 transition-colors">
+      <h3 class="text-base font-bold text-white tracking-tight line-clamp-1">{model.name}</h3>
+    </a>
+    <div class="text-xs font-mono text-cyan-400/90 mt-0.5 flex items-center gap-1.5">
+      <span>{model.model_code}</span>
+      <a
+        href={model.support_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-slate-500 hover:text-slate-300 transition-colors"
+        title="Official Support Page"
+      >
+        <svg class="w-3.5 h-3.5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+      </a>
+    </div>
+
+    <!-- Firmware Info Box -->
+    <div class="bg-[#090B10] border border-slate-800/80 rounded-lg p-3 my-4">
+      <div class="flex items-center justify-between text-xs mb-1.5">
+        <span class="text-slate-400 font-medium">Latest Firmware:</span>
+        <span class="font-bold font-mono text-emerald-400 text-sm">
+          {model.latest_version ? `v${model.latest_version}` : 'Checking...'}
+        </span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-400 pt-2 border-t border-slate-800/50">
+        <div>
+          <span class="text-slate-500">Released:</span>{' '}
+          <span class="text-slate-300 font-medium">{model.release_date || 'N/A'}</span>
+        </div>
+        <div class="text-right">
+          <span class="text-slate-500">Size:</span>{' '}
+          <span class="text-slate-300 font-medium">{model.file_size || 'N/A'}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="space-y-2 pt-2">
+    <div class="flex items-center gap-2">
+      {model.download_url ? (
+        <a
+          href={model.download_url}
+          class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs py-2 px-3 rounded-lg text-center transition-all flex items-center justify-center gap-1.5 shadow-sm shadow-emerald-500/20"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          <span>Download .zip</span>
+        </a>
+      ) : (
+        <a
+          href={model.support_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs py-2 px-3 rounded-lg text-center transition"
+        >
+          Check Official Site
+        </a>
+      )}
+
+      <!-- Subscribe Button -->
+      <button
+        type="button"
+        class="open-subscribe-btn bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-emerald-400 text-xs font-semibold py-2 px-3 rounded-lg transition border border-slate-700 flex items-center gap-1.5 cursor-pointer"
+        data-model-id={model.id}
+        data-model-name={model.name}
+        title="Subscribe to Email Alerts"
+      >
+        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        <span class="hidden sm:inline">Alert Me</span>
+      </button>
+    </div>
+
+    <!-- USB Install Guide Link -->
+    <a
+      href={`/guide?model=${encodeURIComponent(model.model_code)}`}
+      class="block text-center text-[11px] text-slate-400 hover:text-cyan-400 transition font-medium py-1"
+    >
+      Offline USB Guide Instructions →
+    </a>
+  </div>
+</div>

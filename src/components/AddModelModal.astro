@@ -1,0 +1,168 @@
+---
+// AddModelModal.astro
+import { getAllSupportedBrands } from '../lib/brands';
+const brands = getAllSupportedBrands();
+---
+
+<div id="add-model-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
+  <div class="bg-[#121622] border border-slate-700/80 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative text-left">
+    <!-- Close Button -->
+    <button
+      id="close-add-model-modal"
+      class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <!-- Modal Header -->
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-xl bg-cyan-950/80 border border-cyan-500/30 flex items-center justify-center text-xl">
+        📺
+      </div>
+      <div>
+        <h3 class="text-lg font-bold text-white tracking-tight">Add TV Model to Catalog</h3>
+        <p class="text-xs text-slate-400">Instantly verified against official manufacturer support servers.</p>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form id="add-model-form" class="space-y-4">
+      <div>
+        <label for="add-brand" class="block text-xs font-semibold text-slate-300 mb-1.5">
+          TV Brand
+        </label>
+        <select
+          id="add-brand"
+          name="brand"
+          class="w-full bg-[#090A0F] border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-lg px-3.5 py-2.5 text-sm text-white outline-none transition cursor-pointer"
+        >
+          {brands.map((b) => (
+            <option value={b.id} disabled={!b.active}>
+              {b.name} {!b.active ? '(Coming soon)' : ''}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label for="add-model-code" class="block text-xs font-semibold text-slate-300 mb-1.5">
+          Official Model Code / Number
+        </label>
+        <input
+          type="text"
+          id="add-model-code"
+          name="modelCode"
+          required
+          placeholder="e.g. OLED65C3PUA or OLED65CXPUA.AUS"
+          class="w-full bg-[#090A0F] border border-slate-700 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 rounded-lg px-3.5 py-2.5 text-sm text-white placeholder-slate-500 outline-none transition font-mono uppercase"
+        />
+        <p class="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
+          💡 Found on the sticker on the back of the TV, or in <strong>Settings → Support / General → About This TV</strong>.
+        </p>
+      </div>
+
+      <!-- Anti-Spam Notice -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-lg p-3 text-xs text-slate-400 flex items-start gap-2.5">
+        <span class="text-cyan-400 text-sm">🛡️</span>
+        <div>
+          <strong class="text-slate-200">Strict Live Verification:</strong> Every model is queried live against official manufacturer support servers. Invalid or fake model numbers are rejected immediately to protect the catalog.
+        </div>
+      </div>
+
+      <!-- Message Banner -->
+      <div id="add-model-message" class="text-xs p-3 rounded-lg hidden font-medium"></div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        id="add-model-submit-btn"
+        class="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-bold text-sm py-2.5 px-4 rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-cyan-500/20"
+      >
+        <span id="add-btn-text">Verify & Track TV Model</span>
+        <span id="add-btn-spinner" class="hidden animate-spin">⏳</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+  function initAddModelModal() {
+    const modal = document.getElementById('add-model-modal');
+    const openBtn = document.getElementById('open-add-model-btn');
+    const closeBtn = document.getElementById('close-add-model-modal');
+    const form = document.getElementById('add-model-form') as HTMLFormElement;
+    const modelCodeInput = document.getElementById('add-model-code') as HTMLInputElement;
+    const brandSelect = document.getElementById('add-brand') as HTMLSelectElement;
+    const messageEl = document.getElementById('add-model-message');
+    const submitBtn = document.getElementById('add-model-submit-btn') as HTMLButtonElement;
+    const btnText = document.getElementById('add-btn-text');
+    const btnSpinner = document.getElementById('add-btn-spinner');
+
+    openBtn?.addEventListener('click', () => {
+      if (messageEl) {
+        messageEl.className = 'text-xs p-3 rounded-lg hidden font-medium';
+        messageEl.textContent = '';
+      }
+      modal?.classList.remove('hidden');
+      modelCodeInput?.focus();
+    });
+
+    closeBtn?.addEventListener('click', () => {
+      modal?.classList.add('hidden');
+    });
+
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.add('hidden');
+      }
+    });
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const modelCode = modelCodeInput.value.trim();
+      const brand = brandSelect.value;
+
+      if (!modelCode) return;
+
+      submitBtn.disabled = true;
+      btnText!.textContent = 'Verifying with Manufacturer...';
+      btnSpinner?.classList.remove('hidden');
+      messageEl?.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/models/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ modelCode, brand }),
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          messageEl!.className = 'text-xs p-3 rounded-lg font-medium bg-emerald-950/60 border border-emerald-500/40 text-emerald-300';
+          messageEl!.textContent = data.message || `Successfully added ${modelCode}!`;
+          form.reset();
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
+        } else {
+          messageEl!.className = 'text-xs p-3 rounded-lg font-medium bg-rose-950/60 border border-rose-500/40 text-rose-300';
+          messageEl!.textContent = data.error || 'Failed to verify model number.';
+        }
+        messageEl?.classList.remove('hidden');
+      } catch (err: any) {
+        messageEl!.className = 'text-xs p-3 rounded-lg font-medium bg-rose-950/60 border border-rose-500/40 text-rose-300';
+        messageEl!.textContent = 'Network error during verification. Please try again.';
+        messageEl?.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+        btnText!.textContent = 'Verify & Track TV Model';
+        btnSpinner?.classList.add('hidden');
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', initAddModelModal);
+  document.addEventListener('astro:page-load', initAddModelModal);
+</script>

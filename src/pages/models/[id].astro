@@ -1,0 +1,199 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SubscribeModal from '../../components/SubscribeModal.astro';
+import { getModelById } from '../../lib/db';
+
+export const prerender = false;
+
+const { id } = Astro.params;
+const env = (Astro.locals as any).runtime?.env || {};
+const db = env.DB;
+
+let model: any = null;
+if (db && id) {
+  model = await getModelById(db, id);
+}
+
+if (!model) {
+  return Astro.redirect('/404');
+}
+---
+
+<Layout
+  title={`${model.name} Firmware Download & Updates — OwnTheGlass`}
+  description={`Download official firmware updates for ${model.name} (${model.model_code}) and follow our air-gapped offline USB installation guide.`}
+>
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Breadcrumb -->
+    <div class="flex items-center gap-2 text-xs text-slate-400 mb-6">
+      <a href="/" class="hover:text-emerald-400 transition">Catalog</a>
+      <span>/</span>
+      <span>{model.brand}</span>
+      <span>/</span>
+      <span class="text-white font-medium">{model.model_code}</span>
+    </div>
+
+    <!-- Model Hero Card -->
+    <div class="bg-[#121622] border border-slate-800 rounded-2xl p-6 sm:p-8 mb-10 shadow-2xl">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+              {model.brand}
+            </span>
+            {model.series && (
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">
+                {model.series}
+              </span>
+            )}
+            <span class="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded">
+              🛡️ Air-Gap Safe
+            </span>
+          </div>
+
+          <h1 class="text-2xl sm:text-4xl font-black text-white tracking-tight">{model.name}</h1>
+          <div class="text-sm font-mono text-cyan-400 mt-1 flex items-center gap-2">
+            <span>Model Code: {model.model_code}</span>
+            <a
+              href={model.support_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-xs text-slate-400 hover:text-white underline font-sans"
+            >
+              Official LG Support Page ↗
+            </a>
+          </div>
+        </div>
+
+        <!-- Call to Action Buttons -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          {model.download_url && (
+            <a
+              href={model.download_url}
+              class="bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm px-6 py-3 rounded-xl transition text-center shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>Download Firmware (.zip)</span>
+            </a>
+          )}
+
+          <button
+            type="button"
+            class="open-subscribe-btn bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold px-5 py-3 rounded-xl transition border border-slate-700 flex items-center justify-center gap-2 cursor-pointer"
+            data-model-id={model.id}
+            data-model-name={model.name}
+          >
+            <span class="text-emerald-400">🔔</span>
+            <span>Get Update Alerts</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Specs Banner -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-[#090B10] border border-slate-800 rounded-xl p-4 mt-8">
+        <div>
+          <div class="text-[11px] text-slate-500 font-medium">Latest Firmware</div>
+          <div class="text-sm font-bold font-mono text-emerald-400 mt-0.5">
+            {model.latest_version ? `v${model.latest_version}` : 'N/A'}
+          </div>
+        </div>
+        <div>
+          <div class="text-[11px] text-slate-500 font-medium">Release Date</div>
+          <div class="text-sm font-semibold text-slate-200 mt-0.5">{model.release_date || 'N/A'}</div>
+        </div>
+        <div>
+          <div class="text-[11px] text-slate-500 font-medium">Package Size</div>
+          <div class="text-sm font-semibold text-slate-200 mt-0.5">{model.file_size || 'N/A'}</div>
+        </div>
+        <div>
+          <div class="text-[11px] text-slate-500 font-medium">Install Method</div>
+          <a href="/guide" class="text-sm font-semibold text-cyan-400 hover:underline mt-0.5 block">
+            Offline USB Drive →
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Versions History Table -->
+    <div class="bg-[#10141E] border border-slate-800 rounded-2xl p-6 sm:p-8 mb-10">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-white tracking-tight">Available Firmware Versions</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Direct official manufacturer download links.</p>
+        </div>
+      </div>
+
+      {model.all_versions && model.all_versions.length > 0 ? (
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="text-[11px] uppercase tracking-wider text-slate-400 bg-slate-900/60 border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4 font-semibold">Version</th>
+                <th class="py-3 px-4 font-semibold">Release Date</th>
+                <th class="py-3 px-4 font-semibold">File Size</th>
+                <th class="py-3 px-4 font-semibold text-right">Official Download</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60 font-mono">
+              {model.all_versions.map((ver: any, idx: number) => (
+                <tr class="hover:bg-slate-900/30 transition-colors">
+                  <td class="py-3.5 px-4 font-bold text-white flex items-center gap-2">
+                    <span>v{ver.version}</span>
+                    {idx === 0 && (
+                      <span class="text-[9px] uppercase font-sans font-bold px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-500/30">
+                        Latest
+                      </span>
+                    )}
+                  </td>
+                  <td class="py-3.5 px-4 font-sans text-slate-400">{ver.release_date || '—'}</td>
+                  <td class="py-3.5 px-4 text-slate-400">{ver.file_size || '—'}</td>
+                  <td class="py-3.5 px-4 text-right">
+                    {ver.download_url ? (
+                      <a
+                        href={ver.download_url}
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-sans font-semibold text-[11px] transition"
+                      >
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        <span>Download</span>
+                      </a>
+                    ) : (
+                      <span class="text-slate-600 font-sans">N/A</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div class="text-center py-8 text-slate-500 text-xs">
+          No historical version records available yet.
+        </div>
+      )}
+    </div>
+
+    <!-- USB Installation Callout -->
+    <div class="bg-gradient-to-r from-emerald-950/40 via-cyan-950/40 to-slate-900 border border-emerald-500/30 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div>
+        <div class="text-xs uppercase font-bold text-emerald-400 tracking-wider mb-1">Zero Wi-Fi Needed</div>
+        <h3 class="text-lg font-bold text-white">Ready to install this update onto your TV?</h3>
+        <p class="text-xs text-slate-300 mt-1 max-w-lg">
+          Follow our step-by-step interactive USB guide to format your drive, create the <code>LG_DTV</code> folder, and flash safely.
+        </p>
+      </div>
+
+      <a
+        href="/guide"
+        class="whitespace-nowrap bg-white hover:bg-slate-200 text-black font-bold text-xs px-5 py-3 rounded-xl transition shadow"
+      >
+        Follow USB Flashing Guide →
+      </a>
+    </div>
+  </div>
+
+  <SubscribeModal />
+</Layout>

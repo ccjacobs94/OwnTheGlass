@@ -1,0 +1,24 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+data/*.db
+data/*.db-journal
+
+# Node & Build Outputs
+node_modules/
+dist/
+.astro/
+
+# Cloudflare & Wrangler
+.wrangler/
+
+# OS / Editor
+.DS_Store
+Thumbs.db

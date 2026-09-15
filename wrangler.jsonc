@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "owntheglass",
+  "compatibility_date": "2025-03-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "pages_build_output_dir": "dist",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "owntheglass-db",
+      "database_id": "owntheglass-db-id"
+    }
+  ],
+  "triggers": {
+    "crons": [
+      "0 */6 * * *"
+    ]
+  },
+  "vars": {
+    "APP_NAME": "OwnTheGlass",
+    "APP_URL": "https://owntheglass.com"
+  }
+}

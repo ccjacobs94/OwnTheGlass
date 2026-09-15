@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+export const prerender = true;
+---
+
+<Layout title="404 — Model Not Found">
+  <div class="max-w-md mx-auto px-4 py-24 text-center">
+    <div class="text-5xl mb-4">📺</div>
+    <h1 class="text-2xl font-black text-white mb-2">Model Not Found</h1>
+    <p class="text-xs text-slate-400 mb-6">
+      The TV model you're looking for isn't in our catalog yet, or the link is incorrect.
+    </p>
+    <a
+      href="/"
+      class="inline-block bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs py-2.5 px-5 rounded-lg transition shadow-lg shadow-emerald-500/20"
+    >
+      Browse Available TV Models
+    </a>
+  </div>
+</Layout>

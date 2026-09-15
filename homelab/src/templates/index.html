@@ -1,0 +1,505 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Overview Bar -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+            <div>
+                <p class="text-xs font-medium text-slate-400">Tracked Devices</p>
+                <p class="text-2xl font-bold text-white mt-1">{{ devices|length }}</p>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <rect width="20" height="15" x="2" y="3" rx="2" stroke-width="2"/>
+                    <path stroke-width="2" stroke-linecap="round" d="m7 21 5-3 5 3M12 18v3"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+            <div>
+                <p class="text-xs font-medium text-slate-400">Check Frequency</p>
+                <p class="text-2xl font-bold text-white mt-1">Every {{ config.scheduler.interval_hours }}h</p>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                    <path stroke-width="2" stroke-linecap="round" d="M12 6v6l4 2"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+            <div>
+                <p class="text-xs font-medium text-slate-400">NTFY Alerts</p>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="w-2.5 h-2.5 rounded-full {% if config.ntfy.enabled %}bg-emerald-500 animate-pulse{% else %}bg-slate-500{% endif %}"></span>
+                    <a href="{{ config.ntfy.server_url }}/{{ config.ntfy.topic }}" target="_blank" class="text-sm font-semibold text-red-400 hover:text-red-300 truncate max-w-[140px]" title="{{ config.ntfy.topic }}">
+                        {{ config.ntfy.topic }}
+                    </a>
+                </div>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-sm">
+            <div>
+                <p class="text-xs font-medium text-slate-400">Next Auto-Check</p>
+                <p id="nextCheckDisplay" class="text-sm font-semibold text-white mt-1">
+                    {% if next_run %}{{ next_run }}{% else %}Scheduled{% endif %}
+                </p>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Device Cards Grid -->
+    <div>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <span>Monitored Displays</span>
+                <span class="text-xs font-normal text-slate-400">({{ devices|length }} configured)</span>
+            </h2>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {% for dev in devices %}
+            <div class="bg-slate-900/90 border border-slate-800 hover:border-slate-700 rounded-2xl p-6 transition-all shadow-lg flex flex-col justify-between relative overflow-hidden group">
+                <!-- Background Accent Glow -->
+                <div class="absolute -right-20 -top-20 w-48 h-48 bg-red-900/10 rounded-full blur-3xl pointer-events-none group-hover:bg-red-900/20 transition-all"></div>
+
+                <div>
+                    <!-- Header with title & badges -->
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            {% if dev.product_image %}
+                            <div class="w-14 h-14 rounded-xl bg-slate-950 border border-slate-800 flex-shrink-0 flex items-center justify-center p-1 overflow-hidden">
+                                <img src="{{ dev.product_image }}" alt="{{ dev.name }}" class="max-h-full max-w-full object-contain">
+                            </div>
+                            {% else %}
+                            <div class="w-14 h-14 rounded-xl bg-slate-800 border border-slate-700 flex-shrink-0 flex items-center justify-center text-red-400">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <rect width="20" height="15" x="2" y="3" rx="2" stroke-width="2"/>
+                                    <path stroke-width="2" stroke-linecap="round" d="m7 21 5-3 5 3M12 18v3"/>
+                                </svg>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <h3 class="font-bold text-base text-white">{{ dev.name }}</h3>
+                                <p class="text-xs font-mono text-slate-400 mt-0.5">{{ dev.model_code }} &bull; Region: {{ dev.region|default("US") }}</p>
+                                {% if dev.product_name %}
+                                <p class="text-xs text-slate-500 mt-1 line-clamp-1" title="{{ dev.product_name }}">{{ dev.product_name }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div>
+                            {% if dev.latest_version %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                Tracked
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-950/80 text-yellow-400 border border-yellow-800/60">
+                                Pending Check
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Version Details Box -->
+                    <div class="mt-6 grid grid-cols-3 gap-3 bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 text-center">
+                        <div>
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Latest Firmware</span>
+                            <span class="font-mono font-bold text-sm text-red-400 mt-0.5 block">
+                                {% if dev.latest_version %}v{{ dev.latest_version }}{% else %}—{% endif %}
+                            </span>
+                        </div>
+                        <div class="border-x border-slate-800/80">
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Release Date</span>
+                            <span class="font-medium text-xs text-slate-200 mt-1 block">
+                                {{ dev.release_date|default("—") }}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">Package Size</span>
+                            <span class="font-medium text-xs text-slate-200 mt-1 block">
+                                {{ dev.file_size|default("—") }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Previous versions list (if multiple available) -->
+                    {% if dev.available_versions and dev.available_versions|length > 1 %}
+                    <div class="mt-3">
+                        <details class="text-xs text-slate-400 group/details cursor-pointer">
+                            <summary class="flex items-center justify-between py-1 hover:text-slate-200 list-none select-none font-medium">
+                                <span>All Available Releases ({{ dev.available_versions|length }})</span>
+                                <svg class="w-4 h-4 transition group-open/details:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </summary>
+                            <div class="mt-2 space-y-1.5 pl-2 border-l border-slate-800 py-1">
+                                {% for fw in dev.available_versions %}
+                                <div class="flex items-center justify-between text-[11px] py-0.5">
+                                    <span class="font-mono text-slate-300">v{{ fw.version }}</span>
+                                    <span class="text-slate-500">{{ fw.release_date|default("Unknown") }} &bull; {{ fw.file_size|default("") }}</span>
+                                    {% if fw.download_url %}
+                                    <a href="{{ fw.download_url }}" class="text-red-400 hover:underline">Download</a>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </details>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Footer Actions -->
+                <div class="mt-6 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+                    <div class="text-[11px] text-slate-500 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                            <path stroke-width="2" stroke-linecap="round" d="M12 6v6l3 2"/>
+                        </svg>
+                        Last checked: <span class="text-slate-400 font-medium">{{ dev.last_checked_at_human|default("Never") }}</span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        {% if dev.download_url %}
+                        <a href="{{ dev.download_url }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600/90 hover:bg-red-500 text-white shadow transition">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Download Firmware
+                        </a>
+                        {% endif %}
+                        <a href="/guide" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Step-by-step USB installation instructions">
+                            <svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
+                            </svg>
+                            USB Guide
+                        </a>
+                        <a href="{{ dev.support_url }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                            Support Page
+                            <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Quick USB Installation Guide Banner -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-md">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        How to Install Firmware via USB Drive
+                    </h3>
+                </div>
+                <p class="text-xs text-slate-400">
+                    Quick 4-step reference for flashing firmware using a USB stick on LG webOS TVs.
+                </p>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <a href="/guide" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-red-600 hover:bg-red-500 text-white shadow transition">
+                    <span>Full USB Guide & FAQ</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                    </svg>
+                </a>
+                <a href="https://www.lg.com/ca_en/support/product-support/troubleshoot/help-library/cs-CT52001643-20151803889491/" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                    <span>Official LG Video</span>
+                    <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            <div class="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800/80">
+                <div class="flex items-center gap-2 text-slate-200 font-semibold mb-1">
+                    <span class="w-5 h-5 rounded-full bg-red-950 text-red-400 border border-red-800/80 flex items-center justify-center text-[10px]">1</span>
+                    Format USB
+                </div>
+                <p class="text-slate-400">Format USB stick as <strong class="text-slate-200">FAT32</strong> or <strong class="text-slate-200">NTFS</strong>.</p>
+            </div>
+
+            <div class="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800/80">
+                <div class="flex items-center gap-2 text-slate-200 font-semibold mb-1">
+                    <span class="w-5 h-5 rounded-full bg-red-950 text-red-400 border border-red-800/80 flex items-center justify-center text-[10px]">2</span>
+                    Create LG_DTV
+                </div>
+                <p class="text-slate-400">Create folder <code class="text-red-400 font-bold font-mono">LG_DTV</code> at the root of the USB drive.</p>
+            </div>
+
+            <div class="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800/80">
+                <div class="flex items-center gap-2 text-slate-200 font-semibold mb-1">
+                    <span class="w-5 h-5 rounded-full bg-red-950 text-red-400 border border-red-800/80 flex items-center justify-center text-[10px]">3</span>
+                    Extract .epk
+                </div>
+                <p class="text-slate-400">Unzip downloaded package and put the <strong class="text-slate-200">.epk</strong> file inside <code class="text-red-400">LG_DTV</code>.</p>
+            </div>
+
+            <div class="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800/80">
+                <div class="flex items-center gap-2 text-slate-200 font-semibold mb-1">
+                    <span class="w-5 h-5 rounded-full bg-red-950 text-red-400 border border-red-800/80 flex items-center justify-center text-[10px]">4</span>
+                    Plug into TV
+                </div>
+                <p class="text-slate-400">Plug USB into TV, select <strong class="text-slate-200">Stay</strong>, then click <strong class="text-slate-200">Install</strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick NTFY Configuration Card -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-md">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    NTFY Push Notification Settings
+                </h3>
+                <p class="text-xs text-slate-400 mt-1">
+                    Instant alerts are published to your topic. Subscribe on iOS/Android via the <a href="https://ntfy.sh/app" target="_blank" class="text-red-400 hover:underline">NTFY mobile app</a>.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+                <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs">
+                    <span class="text-slate-500">Topic:</span>
+                    <input id="ntfyTopicInput" type="text" value="{{ config.ntfy.topic }}" class="bg-transparent border-none text-red-400 font-mono focus:outline-none focus:ring-0 w-44" placeholder="topic-name">
+                </div>
+                <button onclick="saveNtfyConfig()" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+                    Save Topic
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- History & Logs Tabs -->
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-md">
+        <div class="border-b border-slate-800 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button onclick="switchTab('checks')" id="tabBtnChecks" class="text-sm font-bold text-white border-b-2 border-red-500 pb-1 flex items-center gap-2">
+                    Firmware Check History
+                </button>
+                <button onclick="switchTab('notifications')" id="tabBtnNotifications" class="text-sm font-medium text-slate-400 hover:text-slate-200 pb-1 flex items-center gap-2">
+                    Notification Logs
+                </button>
+            </div>
+            <span class="text-xs text-slate-500 font-mono">Recent 50 entries</span>
+        </div>
+
+        <!-- Checks Tab Content -->
+        <div id="tabChecks" class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800/80">
+                    <tr>
+                        <th class="px-6 py-3">Timestamp</th>
+                        <th class="px-6 py-3">Device</th>
+                        <th class="px-6 py-3">Version Found</th>
+                        <th class="px-6 py-3">Status</th>
+                        <th class="px-6 py-3">Details</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/60 font-sans" id="checkHistoryBody">
+                    {% for h in check_history %}
+                    <tr class="hover:bg-slate-800/30 transition">
+                        <td class="px-6 py-3 text-slate-400 font-mono whitespace-nowrap">{{ h.checked_at }}</td>
+                        <td class="px-6 py-3 font-medium text-white">{{ h.device_name|default(h.device_id) }}</td>
+                        <td class="px-6 py-3 font-mono text-red-400">v{{ h.version_found }}</td>
+                        <td class="px-6 py-3">
+                            {% if h.status == 'NEW_UPDATE' %}
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-950 text-red-400 border border-red-800">NEW UPDATE</span>
+                            {% elif h.status == 'FIRST_SEEN' %}
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-950 text-blue-400 border border-blue-800">INITIALIZED</span>
+                            {% elif h.status == 'SUCCESS' %}
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">OK</span>
+                            {% else %}
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-950 text-yellow-400 border border-yellow-800">{{ h.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-3 text-slate-400">{{ h.message }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-slate-500">No check history recorded yet. Click "Check Now" above to run the first check.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Notifications Tab Content -->
+        <div id="tabNotifications" class="overflow-x-auto hidden">
+            <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-950 text-slate-400 font-semibold border-b border-slate-800/80">
+                    <tr>
+                        <th class="px-6 py-3">Timestamp</th>
+                        <th class="px-6 py-3">Topic</th>
+                        <th class="px-6 py-3">Title</th>
+                        <th class="px-6 py-3">Version</th>
+                        <th class="px-6 py-3">Delivery Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800/60 font-sans">
+                    {% for n in notification_history %}
+                    <tr class="hover:bg-slate-800/30 transition">
+                        <td class="px-6 py-3 text-slate-400 font-mono whitespace-nowrap">{{ n.sent_at }}</td>
+                        <td class="px-6 py-3 font-mono text-red-400">{{ n.topic }}</td>
+                        <td class="px-6 py-3 font-medium text-white">{{ n.title }}</td>
+                        <td class="px-6 py-3 font-mono text-slate-300">{{ n.version }}</td>
+                        <td class="px-6 py-3">
+                            {% if n.status == 'SENT' %}
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">DELIVERED</span>
+                            {% else %}
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-950 text-red-400 border border-red-800">FAILED ({{ n.status_code }})</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-slate-500">No notifications sent yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function showToast(message, isSuccess = true) {
+        const toast = document.getElementById('toast');
+        const toastContent = document.getElementById('toastContent');
+        const toastIcon = document.getElementById('toastIcon');
+        const toastMessage = document.getElementById('toastMessage');
+
+        toastMessage.textContent = message;
+        if (isSuccess) {
+            toastContent.className = 'flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border text-sm backdrop-blur-md bg-emerald-950/90 border-emerald-800 text-emerald-200';
+            toastIcon.innerHTML = '<svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+        } else {
+            toastContent.className = 'flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border text-sm backdrop-blur-md bg-red-950/90 border-red-800 text-red-200';
+            toastIcon.innerHTML = '<svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+        }
+
+        toast.classList.remove('translate-y-20', 'opacity-0');
+        setTimeout(() => {
+            toast.classList.add('translate-y-20', 'opacity-0');
+        }, 4000);
+    }
+
+    async function triggerCheckNow() {
+        const btn = document.getElementById('checkNowBtn');
+        const spinner = document.getElementById('checkSpinner');
+        const icon = document.getElementById('checkIcon');
+        const btnText = document.getElementById('checkBtnText');
+
+        btn.disabled = true;
+        spinner.classList.remove('hidden');
+        icon.classList.add('hidden');
+        btnText.textContent = 'Checking...';
+
+        try {
+            const resp = await fetch('/api/check-now', { method: 'POST' });
+            const data = await resp.json();
+            if (data.success) {
+                showToast('Upstream check completed! Reloading view...');
+                setTimeout(() => window.location.reload(), 1200);
+            } else {
+                showToast(data.message || 'Check encountered issues.', false);
+            }
+        } catch (e) {
+            showToast('Error communicating with server: ' + e.message, false);
+        } finally {
+            btn.disabled = false;
+            spinner.classList.add('hidden');
+            icon.classList.remove('hidden');
+            btnText.textContent = 'Check Now';
+        }
+    }
+
+    async function sendTestNotification() {
+        const btn = document.getElementById('sendTestNtfyBtn');
+        btn.disabled = true;
+        try {
+            const resp = await fetch('/api/send-test-ntfy', { method: 'POST' });
+            const data = await resp.json();
+            if (data.success) {
+                showToast(`Test alert sent to ntfy topic '${data.topic}'!`);
+            } else {
+                showToast(`Failed to send NTFY alert to topic '${data.topic}'`, false);
+            }
+        } catch (e) {
+            showToast('Error: ' + e.message, false);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
+    async function saveNtfyConfig() {
+        const topic = document.getElementById('ntfyTopicInput').value.trim();
+        if (!topic) {
+            showToast('Topic cannot be empty', false);
+            return;
+        }
+        try {
+            const resp = await fetch('/api/config/ntfy', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topic: topic })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                showToast('NTFY topic saved successfully!');
+            } else {
+                showToast('Failed to save NTFY config', false);
+            }
+        } catch (e) {
+            showToast('Error: ' + e.message, false);
+        }
+    }
+
+    function switchTab(tab) {
+        const tabChecks = document.getElementById('tabChecks');
+        const tabNotifications = document.getElementById('tabNotifications');
+        const btnChecks = document.getElementById('tabBtnChecks');
+        const btnNotifications = document.getElementById('tabBtnNotifications');
+
+        if (tab === 'checks') {
+            tabChecks.classList.remove('hidden');
+            tabNotifications.classList.add('hidden');
+            btnChecks.className = 'text-sm font-bold text-white border-b-2 border-red-500 pb-1 flex items-center gap-2';
+            btnNotifications.className = 'text-sm font-medium text-slate-400 hover:text-slate-200 pb-1 flex items-center gap-2';
+        } else {
+            tabChecks.classList.add('hidden');
+            tabNotifications.classList.remove('hidden');
+            btnNotifications.className = 'text-sm font-bold text-white border-b-2 border-red-500 pb-1 flex items-center gap-2';
+            btnChecks.className = 'text-sm font-medium text-slate-400 hover:text-slate-200 pb-1 flex items-center gap-2';
+        }
+    }
+</script>
+{% endblock %}

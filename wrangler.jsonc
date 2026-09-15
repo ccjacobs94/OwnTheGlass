@@ -14,8 +14,4 @@
       "database_id": "owntheglass-db-id"
     }
   ],
-  "vars": {
-    "APP_NAME": "OwnTheGlass",
-    "APP_URL": "https://owntheglass.com"
-  }
 }

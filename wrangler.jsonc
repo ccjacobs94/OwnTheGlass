@@ -5,7 +5,8 @@
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "pages_build_output_dir": "dist",
+  "main": "dist/_worker.js/index.js",
+  "assets": { "directory": "dist" },
   "d1_databases": [
     {
       "binding": "DB",

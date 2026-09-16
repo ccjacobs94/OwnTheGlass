@@ -90,6 +90,8 @@ const brands = getAllSupportedBrands();
 <script>
   function initAddModelModal() {
     const modal = document.getElementById('add-model-modal');
+    if (!modal || modal.dataset.initialized === 'true') return;
+    modal.dataset.initialized = 'true';
     const openBtn = document.getElementById('open-add-model-btn');
     const closeBtn = document.getElementById('close-add-model-modal');
     const form = document.getElementById('add-model-form') as HTMLFormElement;

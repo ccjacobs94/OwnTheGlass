@@ -77,6 +77,9 @@
 
   function initSubscribeModal() {
     const modal = document.getElementById('subscribe-modal');
+    if (!modal || modal.dataset.initialized === 'true') return;
+    modal.dataset.initialized = 'true';
+
     const closeBtn = document.getElementById('close-subscribe-modal');
     const form = document.getElementById('subscribe-form') as HTMLFormElement;
     const modelNameEl = document.getElementById('modal-model-name');
@@ -102,6 +105,11 @@
         }
         if (modal) modal.classList.remove('hidden');
         emailInput?.focus();
+
+        // Reset Turnstile challenge on re-open if widget exists
+        if (currentTurnstileWidgetId !== null && typeof (window as any).turnstile?.reset === 'function') {
+          (window as any).turnstile.reset(currentTurnstileWidgetId);
+        }
       });
     });
 
@@ -129,24 +137,37 @@
       btnSpinner?.classList.remove('hidden');
       messageEl?.classList.add('hidden');
 
+      // Extract Turnstile challenge token if present in DOM or Turnstile API
+      let turnstileToken: string | undefined = undefined;
+      const turnstileInput = form.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement;
+      if (turnstileInput && turnstileInput.value) {
+        turnstileToken = turnstileInput.value.trim();
+      } else if (typeof (window as any).turnstile?.getResponse === 'function') {
+        const tResp = (window as any).turnstile.getResponse(currentTurnstileWidgetId);
+        if (tResp) turnstileToken = String(tResp).trim();
+      }
+
       try {
         const res = await fetch('/api/subscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, modelId }),
+          body: JSON.stringify({ email, modelId, turnstileToken }),
         });
         const data = await res.json();
 
         if (res.ok && data.success) {
           messageEl!.className = 'text-xs p-3 rounded-lg font-medium bg-emerald-950/60 border border-emerald-500/40 text-emerald-300';
-          messageEl!.textContent = data.message || 'Subscribed successfully!';
-          form.reset();
+          messageEl!.textContent = data.message || 'Please check your email to confirm your subscription!';
+          if (emailInput) emailInput.value = '';
           setTimeout(() => {
             modal?.classList.add('hidden');
-          }, 2500);
+          }, 4500);
         } else {
           messageEl!.className = 'text-xs p-3 rounded-lg font-medium bg-rose-950/60 border border-rose-500/40 text-rose-300';
           messageEl!.textContent = data.error || 'Failed to subscribe. Please try again.';
+          if (currentTurnstileWidgetId !== null && typeof (window as any).turnstile?.reset === 'function') {
+            (window as any).turnstile.reset(currentTurnstileWidgetId);
+          }
         }
         messageEl?.classList.remove('hidden');
       } catch (err: any) {

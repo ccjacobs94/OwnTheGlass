@@ -210,21 +210,28 @@ if (db) {
 </Layout>
 
 <script>
-  function initCatalogSearch() {
-    const searchInput = document.getElementById('search-input') as HTMLInputElement;
-    const clearBtn = document.getElementById('clear-search-btn');
-    const cards = document.querySelectorAll('#models-grid > [data-model-id]');
-    const noResults = document.getElementById('no-search-results');
+  function initAddTriggers() {
     const addModelTriggers = document.querySelectorAll('.open-add-model-trigger');
     const addModelBtn = document.getElementById('open-add-model-btn');
 
     addModelTriggers.forEach((btn) => {
-      btn.addEventListener('click', () => {
+      const el = btn as HTMLElement;
+      if (el.dataset.initialized === 'true') return;
+      el.dataset.initialized = 'true';
+      el.addEventListener('click', () => {
         addModelBtn?.click();
       });
     });
+  }
 
-    if (!searchInput) return;
+  function initCatalogSearch() {
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    if (!searchInput || searchInput.dataset.initialized === 'true') return;
+    searchInput.dataset.initialized = 'true';
+
+    const clearBtn = document.getElementById('clear-search-btn');
+    const cards = document.querySelectorAll('#models-grid > [data-model-id]');
+    const noResults = document.getElementById('no-search-results');
 
     function filterCards() {
       const q = searchInput.value.trim().toLowerCase();
@@ -266,6 +273,11 @@ if (db) {
     });
   }
 
-  document.addEventListener('DOMContentLoaded', initCatalogSearch);
-  document.addEventListener('astro:page-load', initCatalogSearch);
+  function initCatalog() {
+    initAddTriggers();
+    initCatalogSearch();
+  }
+
+  document.addEventListener('DOMContentLoaded', initCatalog);
+  document.addEventListener('astro:page-load', initCatalog);
 </script>

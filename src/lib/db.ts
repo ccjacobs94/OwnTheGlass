@@ -160,71 +160,182 @@ export async function upsertModel(
   }
 }
 
+export interface SubscriptionRecord {
+  id: string;
+  email: string;
+  model_id: string;
+  unsubscribe_token: string;
+  confirmation_token: string | null;
+  is_verified: number;
+  created_at: string;
+}
+
+export interface SubscribeResult {
+  success: boolean;
+  token: string;
+  unsubscribeToken: string;
+  confirmationToken: string;
+  alreadySubscribed?: boolean;
+  isVerified?: boolean;
+}
+
+export interface ConfirmResult {
+  success: boolean;
+  status: 'confirmed' | 'already_confirmed' | 'invalid_token' | 'missing_token';
+  modelName?: string;
+  modelCode?: string;
+  email?: string;
+  modelId?: string;
+}
+
 export async function subscribeEmail(
   db: D1Database,
   email: string,
   modelId: string
-): Promise<{ success: boolean; token: string; alreadySubscribed?: boolean }> {
-  const cleanEmail = email.trim().toLowerCase();
+): Promise<SubscribeResult> {
+  const cleanEmail = (typeof email === 'string' ? email : '').trim().toLowerCase();
+  const cleanModelId = (typeof modelId === 'string' ? modelId : '').trim();
   
   // Check if already subscribed
   const existing = await db
-    .prepare('SELECT id, unsubscribe_token FROM email_subscriptions WHERE email = ? AND model_id = ?')
-    .bind(cleanEmail, modelId)
+    .prepare('SELECT id, unsubscribe_token, confirmation_token, is_verified FROM email_subscriptions WHERE email = ? AND model_id = ?')
+    .bind(cleanEmail, cleanModelId)
     .first();
 
   if (existing) {
+    const isVerified = Number(existing.is_verified) === 1;
+    let confirmationToken = (existing.confirmation_token as string) || '';
+
+    // If unconfirmed and missing confirmation token, generate and persist one
+    if (!isVerified && !confirmationToken) {
+      confirmationToken = (crypto.randomUUID().replace(/-/g, '') + Math.random().toString(36).substring(2)).toLowerCase();
+      await db
+        .prepare('UPDATE email_subscriptions SET confirmation_token = ? WHERE id = ?')
+        .bind(confirmationToken, existing.id)
+        .run();
+    }
+
     return {
       success: true,
       token: existing.unsubscribe_token as string,
-      alreadySubscribed: true,
+      unsubscribeToken: existing.unsubscribe_token as string,
+      confirmationToken,
+      alreadySubscribed: isVerified,
+      isVerified,
     };
   }
 
   const id = crypto.randomUUID();
-  const token = crypto.randomUUID().replace(/-/g, '') + Math.random().toString(36).substring(2);
+  const unsubscribeToken = (crypto.randomUUID().replace(/-/g, '') + Math.random().toString(36).substring(2)).toLowerCase();
+  const confirmationToken = (crypto.randomUUID().replace(/-/g, '') + Math.random().toString(36).substring(2)).toLowerCase();
   const now = new Date().toISOString();
 
   await db
     .prepare(`
-      INSERT INTO email_subscriptions (id, email, model_id, unsubscribe_token, is_verified, created_at)
-      VALUES (?, ?, ?, ?, 1, ?)
+      INSERT INTO email_subscriptions (id, email, model_id, unsubscribe_token, confirmation_token, is_verified, created_at)
+      VALUES (?, ?, ?, ?, ?, 0, ?)
     `)
-    .bind(id, cleanEmail, modelId, token, now)
+    .bind(id, cleanEmail, cleanModelId, unsubscribeToken, confirmationToken, now)
     .run();
 
-  return { success: true, token, alreadySubscribed: false };
+  return {
+    success: true,
+    token: unsubscribeToken,
+    unsubscribeToken,
+    confirmationToken,
+    alreadySubscribed: false,
+    isVerified: false,
+  };
+}
+
+export async function confirmSubscription(
+  db: D1Database,
+  token: string
+): Promise<ConfirmResult> {
+  if (!token || typeof token !== 'string' || !token.trim()) {
+    return { success: false, status: 'missing_token' };
+  }
+
+  const cleanToken = token.trim();
+
+  const sub = await db
+    .prepare(`
+      SELECT s.id, s.email, s.is_verified, s.model_id, m.name as model_name, m.model_code
+      FROM email_subscriptions s
+      LEFT JOIN models m ON s.model_id = m.id
+      WHERE s.confirmation_token = ? OR s.confirmation_token = ?
+    `)
+    .bind(cleanToken, cleanToken.toLowerCase())
+    .first();
+
+  if (!sub) {
+    return { success: false, status: 'invalid_token' };
+  }
+
+  if (Number(sub.is_verified) === 1) {
+    return {
+      success: true,
+      status: 'already_confirmed',
+      modelName: (sub.model_name as string) || 'TV Model',
+      modelCode: (sub.model_code as string) || '',
+      email: sub.email as string,
+      modelId: sub.model_id as string,
+    };
+  }
+
+  await db
+    .prepare('UPDATE email_subscriptions SET is_verified = 1 WHERE id = ?')
+    .bind(sub.id)
+    .run();
+
+  return {
+    success: true,
+    status: 'confirmed',
+    modelName: (sub.model_name as string) || 'TV Model',
+    modelCode: (sub.model_code as string) || '',
+    email: sub.email as string,
+    modelId: sub.model_id as string,
+  };
 }
 
 export async function unsubscribeEmail(
   db: D1Database,
   token: string
 ): Promise<{ success: boolean; modelName?: string }> {
+  if (!token || typeof token !== 'string' || !token.trim()) {
+    return { success: false };
+  }
+
+  const cleanToken = token.trim();
   const sub = await db
     .prepare(`
       SELECT s.id, m.name 
       FROM email_subscriptions s
-      JOIN models m ON s.model_id = m.id
-      WHERE s.unsubscribe_token = ?
+      LEFT JOIN models m ON s.model_id = m.id
+      WHERE s.unsubscribe_token = ? OR s.unsubscribe_token = ?
     `)
-    .bind(token)
+    .bind(cleanToken, cleanToken.toLowerCase())
     .first();
 
   if (!sub) {
     return { success: false };
   }
 
-  await db.prepare('DELETE FROM email_subscriptions WHERE unsubscribe_token = ?').bind(token).run();
-  return { success: true, modelName: sub.name as string };
+  await db
+    .prepare('DELETE FROM email_subscriptions WHERE unsubscribe_token = ? OR unsubscribe_token = ?')
+    .bind(cleanToken, cleanToken.toLowerCase())
+    .run();
+  return { success: true, modelName: (sub.name as string) || 'TV Model' };
 }
 
 export async function getSubscribersForModel(
   db: D1Database,
   modelId: string
 ): Promise<{ email: string; unsubscribe_token: string }[]> {
+  const cleanModelId = typeof modelId === 'string' ? modelId.trim() : '';
   const result = await db
-    .prepare('SELECT email, unsubscribe_token FROM email_subscriptions WHERE model_id = ?')
-    .bind(modelId)
+    .prepare('SELECT email, unsubscribe_token FROM email_subscriptions WHERE model_id = ? AND is_verified = 1')
+    .bind(cleanModelId)
     .all();
   return (result.results || []) as { email: string; unsubscribe_token: string }[];
 }

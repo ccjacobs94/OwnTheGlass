@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { unsubscribeEmail } from '../lib/db';
+import { confirmSubscription } from '../lib/db';
 
 export const prerender = false;
 
@@ -10,7 +10,7 @@ const token = rawToken ? rawToken.trim() : null;
 let status = url.searchParams.get('status');
 let modelName = url.searchParams.get('model') || '';
 
-// Handle direct navigation to /unsubscribe?token=xyz
+// Handle direct navigation to /confirm?token=xyz
 if (rawToken !== null && !status) {
   if (!token) {
     status = 'missing_token';
@@ -21,10 +21,15 @@ if (rawToken !== null && !status) {
       status = 'error';
     } else {
       try {
-        const result = await unsubscribeEmail(db, token);
-        if (result.success) {
+        const result = await confirmSubscription(db, token);
+        if (result.status === 'confirmed') {
           status = 'success';
           if (result.modelName) modelName = result.modelName;
+        } else if (result.status === 'already_confirmed') {
+          status = 'already_confirmed';
+          if (result.modelName) modelName = result.modelName;
+        } else if (result.status === 'missing_token') {
+          status = 'missing_token';
         } else {
           status = 'invalid_token';
         }
@@ -46,14 +51,14 @@ if (!modelName) {
 }
 
 const rawMessage = url.searchParams.get('message');
-let errorMessage = 'An unexpected error occurred while processing your unsubscribe request. Please try again later.';
+let errorMessage = 'An unexpected error occurred while verifying your subscription. Please try again later.';
 if (rawMessage && rawMessage.trim()) {
   const cleanMsg = rawMessage.trim();
   errorMessage = cleanMsg.length > 200 ? cleanMsg.slice(0, 200) + '…' : cleanMsg;
 }
 ---
 
-<Layout title="Unsubscribe Confirmation — OwnTheGlass">
+<Layout title="Subscription Confirmation — OwnTheGlass">
   <div class="max-w-md mx-auto px-4 py-20 text-center">
     <div class="bg-[#121622] border border-slate-800 rounded-2xl p-8 shadow-2xl">
       {status === 'success' ? (
@@ -61,25 +66,25 @@ if (rawMessage && rawMessage.trim()) {
           <div class="w-12 h-12 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-2xl mx-auto mb-4">
             ✓
           </div>
-          <h1 class="text-xl font-bold text-white mb-2">Unsubscribed Successfully</h1>
+          <h1 class="text-xl font-bold text-white mb-2">Subscription Confirmed!</h1>
           <p class="text-xs text-slate-400 leading-relaxed mb-6">
-            You will no longer receive firmware alerts for <strong class="text-slate-200">{modelName}</strong>.
+            You are now confirmed to receive instant email alerts whenever new official firmware releases for <strong class="text-slate-200">{modelName}</strong>.
           </p>
           <a
             href="/"
-            class="inline-block w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs py-2.5 px-4 rounded-lg transition border border-slate-700"
+            class="inline-block w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs py-2.5 px-4 rounded-lg transition shadow-lg shadow-emerald-500/20"
           >
             Return to TV Catalog
           </a>
         </div>
-      ) : status === 'missing_token' ? (
+      ) : status === 'already_confirmed' ? (
         <div>
-          <div class="w-12 h-12 rounded-full bg-amber-950/80 border border-amber-500/40 text-amber-400 flex items-center justify-center text-2xl mx-auto mb-4">
-            ⚠
+          <div class="w-12 h-12 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-400 flex items-center justify-center text-2xl mx-auto mb-4">
+            ✓
           </div>
-          <h1 class="text-xl font-bold text-white mb-2">Missing Unsubscribe Token</h1>
+          <h1 class="text-xl font-bold text-white mb-2">Already Confirmed</h1>
           <p class="text-xs text-slate-400 leading-relaxed mb-6">
-            No unsubscribe token was found in your link. Please use the unsubscribe link provided at the bottom of your alert emails.
+            Your subscription for <strong class="text-slate-200">{modelName}</strong> has already been confirmed. You will receive alerts when new firmware is available.
           </p>
           <a
             href="/"
@@ -93,9 +98,25 @@ if (rawMessage && rawMessage.trim()) {
           <div class="w-12 h-12 rounded-full bg-rose-950/80 border border-rose-500/40 text-rose-400 flex items-center justify-center text-2xl mx-auto mb-4">
             ✕
           </div>
-          <h1 class="text-xl font-bold text-white mb-2">Unsubscribe Failed</h1>
+          <h1 class="text-xl font-bold text-white mb-2">Invalid or Expired Link</h1>
           <p class="text-xs text-slate-400 leading-relaxed mb-6">
-            This unsubscribe link is invalid or has already been used.
+            This confirmation link is invalid or has expired. If you would like to receive firmware alerts, please subscribe again.
+          </p>
+          <a
+            href="/"
+            class="inline-block w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs py-2.5 px-4 rounded-lg transition border border-slate-700"
+          >
+            Return to TV Catalog
+          </a>
+        </div>
+      ) : status === 'missing_token' ? (
+        <div>
+          <div class="w-12 h-12 rounded-full bg-amber-950/80 border border-amber-500/40 text-amber-400 flex items-center justify-center text-2xl mx-auto mb-4">
+            ⚠
+          </div>
+          <h1 class="text-xl font-bold text-white mb-2">Missing Confirmation Token</h1>
+          <p class="text-xs text-slate-400 leading-relaxed mb-6">
+            No verification token was found in your link. Please use the verification link sent to your email address.
           </p>
           <a
             href="/"
@@ -109,7 +130,7 @@ if (rawMessage && rawMessage.trim()) {
           <div class="w-12 h-12 rounded-full bg-rose-950/80 border border-rose-500/40 text-rose-400 flex items-center justify-center text-2xl mx-auto mb-4">
             ✕
           </div>
-          <h1 class="text-xl font-bold text-white mb-2">Unsubscribe Error</h1>
+          <h1 class="text-xl font-bold text-white mb-2">Verification Error</h1>
           <p class="text-xs text-slate-400 leading-relaxed mb-6">
             {errorMessage}
           </p>

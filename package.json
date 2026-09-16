@@ -12,6 +12,7 @@
     "d1:migrate:local": "wrangler d1 migrations apply DB --local",
     "d1:migrate:remote": "wrangler d1 migrations apply DB --remote",
     "seed:local": "node scripts/seed_db.mjs",
+    "test": "tsx tests/test_validation.mjs && tsx tests/test_double_opt_in.mjs",
     "deploy": "wrangler pages deploy dist --project-name owntheglass"
   },
   "dependencies": {

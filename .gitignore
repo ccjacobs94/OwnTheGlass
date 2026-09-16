@@ -22,3 +22,7 @@ dist/
 # OS / Editor
 .DS_Store
 Thumbs.db
+
+# Agent Artifacts
+.agents/
+ORIGINAL_REQUEST.md

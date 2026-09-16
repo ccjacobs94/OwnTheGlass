@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { unsubscribeEmail } from '../../lib/db';
+import { confirmSubscription } from '../../lib/db';
 
 export const prerender = false;
 
@@ -65,56 +65,86 @@ export const ALL: APIRoute = async ({ request, locals, redirect }) => {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    return redirect('/unsubscribe?status=error&message=Database+service+unavailable');
+    return redirect('/confirm?status=error&message=Database+service+unavailable');
   }
 
   if (!cleanToken) {
     if (acceptsJson) {
-      return new Response(JSON.stringify({ error: 'Missing unsubscribe token', status: 'missing_token' }), {
+      return new Response(JSON.stringify({ error: 'Missing confirmation token', status: 'missing_token' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    return redirect('/unsubscribe?status=missing_token');
+    return redirect('/confirm?status=missing_token');
   }
 
   try {
-    const result = await unsubscribeEmail(db, cleanToken);
-    if (result.success) {
-      if (acceptsJson) {
+    const result = await confirmSubscription(db, cleanToken);
+
+    if (acceptsJson) {
+      if (result.status === 'confirmed') {
         return new Response(
           JSON.stringify({
             success: true,
-            status: 'success',
-            message: `Successfully unsubscribed from alerts for ${result.modelName || 'TV Model'}.`,
+            status: 'confirmed',
+            message: `Subscription confirmed for ${result.modelName || 'TV Model'}.`,
             modelName: result.modelName,
+            modelCode: result.modelCode,
           }),
           { status: 200, headers: { 'Content-Type': 'application/json' } }
         );
-      }
-      return redirect(
-        `/unsubscribe?status=success&model=${encodeURIComponent(result.modelName || 'TV Model')}`
-      );
-    } else {
-      if (acceptsJson) {
+      } else if (result.status === 'already_confirmed') {
+        return new Response(
+          JSON.stringify({
+            success: true,
+            status: 'already_confirmed',
+            message: `Subscription was already confirmed for ${result.modelName || 'TV Model'}.`,
+            modelName: result.modelName,
+            modelCode: result.modelCode,
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      } else if (result.status === 'missing_token') {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            status: 'missing_token',
+            error: 'Missing confirmation token.',
+          }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      } else {
         return new Response(
           JSON.stringify({
             success: false,
             status: 'invalid_token',
-            error: 'Invalid unsubscribe token',
+            error: 'Invalid or expired confirmation token.',
           }),
           { status: 404, headers: { 'Content-Type': 'application/json' } }
         );
       }
-      return redirect('/unsubscribe?status=invalid_token');
+    }
+
+    if (result.status === 'confirmed') {
+      return redirect(
+        `/confirm?status=success&model=${encodeURIComponent(result.modelName || 'TV Model')}`
+      );
+    } else if (result.status === 'already_confirmed') {
+      return redirect(
+        `/confirm?status=already_confirmed&model=${encodeURIComponent(result.modelName || 'TV Model')}`
+      );
+    } else if (result.status === 'missing_token') {
+      return redirect('/confirm?status=missing_token');
+    } else {
+      return redirect('/confirm?status=invalid_token');
     }
   } catch (err: any) {
     if (acceptsJson) {
-      return new Response(JSON.stringify({ error: err.message || 'Unsubscribe failed' }), {
+      return new Response(JSON.stringify({ error: err.message || 'Verification failed' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    return redirect(`/unsubscribe?status=error&message=${encodeURIComponent(err.message || 'Unknown error')}`);
+    return redirect(`/confirm?status=error&message=${encodeURIComponent(err.message || 'Unknown error')}`);
   }
 };

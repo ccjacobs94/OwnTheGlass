@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getModelById, subscribeEmail } from '../../lib/db';
+import { sendConfirmationEmail } from '../../lib/email';
 import { verifyTurnstileToken } from '../../lib/turnstile';
 
 export const prerender = false;
@@ -15,23 +16,48 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   }
 
-  let body: any;
-  try {
-    body = await request.json();
-  } catch {
-    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  let rawEmail: any;
+  let rawModelId: any;
+  let turnstileToken: string | undefined;
+
+  const contentType = request.headers.get('content-type') || '';
+  if (
+    contentType.includes('application/x-www-form-urlencoded') ||
+    contentType.includes('multipart/form-data')
+  ) {
+    try {
+      const formData = await request.formData();
+      rawEmail = formData.get('email');
+      rawModelId = formData.get('modelId');
+      const tToken = formData.get('turnstileToken');
+      turnstileToken = typeof tToken === 'string' ? tToken.trim() : undefined;
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid form data' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  } else {
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    rawEmail = body?.email;
+    rawModelId = body?.modelId;
+    turnstileToken = typeof body?.turnstileToken === 'string' ? body.turnstileToken.trim() : undefined;
   }
 
-  const email = (body.email || '').trim().toLowerCase();
-  const modelId = (body.modelId || '').trim();
-  const turnstileToken = body.turnstileToken;
+  const email = typeof rawEmail === 'string' ? rawEmail.trim().toLowerCase() : '';
+  const modelId = typeof rawModelId === 'string' ? rawModelId.trim() : '';
 
-  // Basic email regex
+  // Basic email regex and RFC 5321 length check
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!email || !emailRegex.test(email)) {
+  if (!email || email.length > 254 || !emailRegex.test(email)) {
     return new Response(JSON.stringify({ error: 'Please enter a valid email address.' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
@@ -68,13 +94,43 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     const result = await subscribeEmail(db, email, modelId);
 
+    // If user was already confirmed
+    if (result.alreadySubscribed && result.isVerified) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          alreadySubscribed: true,
+          isVerified: true,
+          message: `You are already subscribed to alerts for ${model.name}.`,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Dispatch confirmation email via Resend
+    const resendApiKey = env.RESEND_API_KEY || '';
+    const emailFrom = env.EMAIL_FROM || 'OwnTheGlass <updates@owntheglass.com>';
+    const appUrl = env.APP_URL || new URL(request.url).origin;
+
+    if (resendApiKey) {
+      const emailRes = await sendConfirmationEmail(resendApiKey, emailFrom, {
+        toEmail: email,
+        modelName: model.name,
+        modelCode: model.model_code,
+        confirmationToken: result.confirmationToken,
+        appUrl,
+      });
+      if (!emailRes.success) {
+        console.error('Resend dispatch error:', emailRes.error);
+      }
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
-        alreadySubscribed: result.alreadySubscribed,
-        message: result.alreadySubscribed
-          ? `You are already subscribed to alerts for ${model.name}.`
-          : `Subscribed! We'll alert you immediately when new firmware releases for ${model.name}.`,
+        alreadySubscribed: false,
+        isVerified: false,
+        message: `Please check your email (${email}) to confirm your subscription for ${model.name}.`,
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

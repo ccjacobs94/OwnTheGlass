@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy source files
 COPY src/ ./src/
 COPY main.py .
-COPY config.yaml ./config_example.yaml
+COPY config_example.yaml ./config_example.yaml
 
 # Create persistent directories
 RUN mkdir -p /app/config /app/data

@@ -1,10 +1,34 @@
+const PRODUCTION_HOSTS = new Set(['owntheglass.org', 'www.owntheglass.org']);
+
+/**
+ * Returns true when the request is directed to a live production or Cloudflare Pages preview domain.
+ * Used to enforce strict fail-closed security for Turnstile bot verification.
+ */
+export function isProductionRequest(requestUrl?: string): boolean {
+  if (!requestUrl) return false;
+  try {
+    const { hostname } = new URL(requestUrl);
+    return PRODUCTION_HOSTS.has(hostname) || hostname.endsWith('.pages.dev');
+  } catch {
+    return false;
+  }
+}
+
 export async function verifyTurnstileToken(
   token: string | null | undefined,
   secretKey?: string,
-  ip?: string
+  ip?: string,
+  requestUrl?: string
 ): Promise<{ success: boolean; errorCodes?: string[] }> {
-  // Allow bypassing in local dev if no secret key configured
-  if (!secretKey || secretKey === 'dummy-secret-key' || secretKey.trim() === '') {
+  const secretMissing = !secretKey || secretKey.trim() === '' || secretKey === 'dummy-secret-key';
+
+  if (secretMissing) {
+    // Fail closed on production/preview deployments: missing secret must never silently disable bot protection.
+    if (isProductionRequest(requestUrl)) {
+      console.error('TURNSTILE_SECRET_KEY is not configured on production host; rejecting request (fail closed).');
+      return { success: false, errorCodes: ['missing-input-secret'] };
+    }
+    // Dev and local/test environments without a secret configured allow bypass.
     return { success: true };
   }
 

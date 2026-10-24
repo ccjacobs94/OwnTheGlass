@@ -2,6 +2,8 @@
 // AddModelModal.astro
 import { getAllSupportedBrands } from '../lib/brands';
 const brands = getAllSupportedBrands();
+const env = (Astro.locals as any).runtime?.env || {};
+const turnstileSiteKey = env.PUBLIC_TURNSTILE_SITE_KEY || '';
 ---
 
 <div id="add-model-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
@@ -71,6 +73,9 @@ const brands = getAllSupportedBrands();
         </div>
       </div>
 
+      <!-- Turnstile bot challenge -->
+      <div id="add-model-turnstile" data-sitekey={turnstileSiteKey} class="my-2 min-h-[40px] flex justify-center"></div>
+
       <!-- Message Banner -->
       <div id="add-model-message" class="text-xs p-3 rounded-lg hidden font-medium"></div>
 
@@ -88,6 +93,33 @@ const brands = getAllSupportedBrands();
 </div>
 
 <script>
+  let addModelTurnstileId: any = null;
+
+  function renderAddModelTurnstile() {
+    const container = document.getElementById('add-model-turnstile');
+    const sitekey = container?.getAttribute('data-sitekey');
+    const ts = (window as any).turnstile;
+    if (!sitekey || typeof ts?.render !== 'function') return;
+    try {
+      if (addModelTurnstileId === null) {
+        addModelTurnstileId = ts.render('#add-model-turnstile', { sitekey, theme: 'dark' });
+      } else if (typeof ts.reset === 'function') {
+        ts.reset(addModelTurnstileId);
+      }
+    } catch (e) {
+      console.warn('Turnstile render warning:', e);
+    }
+  }
+
+  function getAddModelTurnstileToken(): string | undefined {
+    const ts = (window as any).turnstile;
+    if (addModelTurnstileId !== null && typeof ts?.getResponse === 'function') {
+      const resp = ts.getResponse(addModelTurnstileId);
+      if (resp) return String(resp).trim();
+    }
+    return undefined;
+  }
+
   function initAddModelModal() {
     const modal = document.getElementById('add-model-modal');
     if (!modal || modal.dataset.initialized === 'true') return;
@@ -108,6 +140,7 @@ const brands = getAllSupportedBrands();
         messageEl.textContent = '';
       }
       modal?.classList.remove('hidden');
+      renderAddModelTurnstile();
       modelCodeInput?.focus();
     });
 
@@ -137,7 +170,7 @@ const brands = getAllSupportedBrands();
         const res = await fetch('/api/models/add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ modelCode, brand }),
+          body: JSON.stringify({ modelCode, brand, turnstileToken: getAddModelTurnstileToken() }),
         });
         const data = await res.json();
 
@@ -161,6 +194,11 @@ const brands = getAllSupportedBrands();
         submitBtn.disabled = false;
         btnText!.textContent = 'Verify & Track TV Model';
         btnSpinner?.classList.add('hidden');
+        // Turnstile tokens are single-use; get a fresh challenge for the next attempt
+        const ts = (window as any).turnstile;
+        if (addModelTurnstileId !== null && typeof ts?.reset === 'function') {
+          try { ts.reset(addModelTurnstileId); } catch {}
+        }
       }
     });
   }

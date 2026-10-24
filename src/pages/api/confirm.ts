@@ -138,13 +138,14 @@ export const ALL: APIRoute = async ({ request, locals, redirect }) => {
     } else {
       return redirect('/confirm?status=invalid_token');
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    console.error('[api/confirm]', err);
     if (acceptsJson) {
-      return new Response(JSON.stringify({ error: err.message || 'Verification failed' }), {
+      return new Response(JSON.stringify({ error: 'Verification failed. Please try again later.' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    return redirect(`/confirm?status=error&message=${encodeURIComponent(err.message || 'Unknown error')}`);
+    return redirect('/confirm?status=error&message=Verification+failed.+Please+try+again+later.');
   }
 };

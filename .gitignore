@@ -11,6 +11,10 @@ venv/
 data/*.db
 data/*.db-journal
 
+# Homelab local config (contains ntfy topic/token). Commit config_example.yaml instead.
+homelab/config.yaml
+homelab/data/
+
 # Node & Build Outputs
 node_modules/
 dist/

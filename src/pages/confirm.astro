@@ -52,9 +52,14 @@ if (!modelName) {
 
 const rawMessage = url.searchParams.get('message');
 let errorMessage = 'An unexpected error occurred while verifying your subscription. Please try again later.';
-if (rawMessage && rawMessage.trim()) {
-  const cleanMsg = rawMessage.trim();
-  errorMessage = cleanMsg.length > 200 ? cleanMsg.slice(0, 200) + '…' : cleanMsg;
+// Only display server-issued messages. Arbitrary query text is ignored to prevent
+// content-spoofing links (e.g. fake "call this number" notices on owntheglass.org).
+const ALLOWED_MESSAGES = new Set([
+  'Database service unavailable',
+  'Verification failed. Please try again later.',
+]);
+if (rawMessage && ALLOWED_MESSAGES.has(rawMessage.trim())) {
+  errorMessage = rawMessage.trim();
 }
 ---
 

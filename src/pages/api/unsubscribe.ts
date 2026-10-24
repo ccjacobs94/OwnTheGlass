@@ -108,13 +108,14 @@ export const ALL: APIRoute = async ({ request, locals, redirect }) => {
       }
       return redirect('/unsubscribe?status=invalid_token');
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    console.error('[api/unsubscribe]', err);
     if (acceptsJson) {
-      return new Response(JSON.stringify({ error: err.message || 'Unsubscribe failed' }), {
+      return new Response(JSON.stringify({ error: 'Unsubscribe failed. Please try again later.' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    return redirect(`/unsubscribe?status=error&message=${encodeURIComponent(err.message || 'Unknown error')}`);
+    return redirect('/unsubscribe?status=error&message=Unsubscribe+failed.+Please+try+again+later.');
   }
 };

@@ -9,6 +9,7 @@ import {
 import { getBrandAdapter } from '../../../lib/brands';
 import { isNewerVersion } from '../../../lib/brands/lg';
 import { sendFirmwareAlert } from '../../../lib/email';
+import { timingSafeEqualStrings } from '../../../lib/security';
 
 export const prerender = false;
 
@@ -23,16 +24,25 @@ export const GET: APIRoute = async ({ request, locals }) => {
     });
   }
 
-  // Optional simple API key authorization for external triggers
-  const url = new URL(request.url);
-  const authHeader = request.headers.get('Authorization');
-  const queryKey = url.searchParams.get('key');
-  const cronSecret = env.CRON_SECRET;
+  // Required bearer-token authorization for external triggers.
+  // Fails closed: if CRON_SECRET is not configured, the endpoint is disabled entirely.
+  // The secret is only accepted via the Authorization header (never the query string,
+  // which leaks into access logs, browser history, and Referer headers).
+  const cronSecret = typeof env.CRON_SECRET === 'string' ? env.CRON_SECRET.trim() : '';
+  if (!cronSecret) {
+    console.error('CRON_SECRET is not configured; /api/cron/check is disabled (fail closed).');
+    return new Response(JSON.stringify({ error: 'Cron endpoint is not configured' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
-  if (cronSecret && queryKey !== cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  const authHeader = request.headers.get('Authorization') || '';
+  const providedSecret = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  if (!providedSecret || !(await timingSafeEqualStrings(providedSecret, cronSecret))) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'WWW-Authenticate': 'Bearer' },
     });
   }
 

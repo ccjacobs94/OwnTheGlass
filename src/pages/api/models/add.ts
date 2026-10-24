@@ -1,8 +1,13 @@
 import type { APIRoute } from 'astro';
 import { getModelByCode, upsertModel } from '../../../lib/db';
-import { getBrandAdapter } from '../../../lib/brands';
+import { getBrandAdapter, getAllSupportedBrands } from '../../../lib/brands';
+import { verifyTurnstileToken } from '../../../lib/turnstile';
+import { internalErrorResponse } from '../../../lib/security';
 
 export const prerender = false;
+
+// Official model codes are alphanumeric with optional dots/dashes (e.g. OLED65C3PUA, OLED65CXPUA.AUS).
+const MODEL_CODE_PATTERN = /^[A-Z0-9][A-Z0-9.\-]{2,31}$/;
 
 export const POST: APIRoute = async ({ request, locals }) => {
   const env = (locals as any).runtime?.env || {};
@@ -25,15 +30,34 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
   }
 
-  const modelCode = (body.modelCode || '').trim().toUpperCase();
-  const brand = (body.brand || 'LG').trim().toUpperCase();
+  const modelCode = typeof body?.modelCode === 'string' ? body.modelCode.trim().toUpperCase() : '';
+  const brand = typeof body?.brand === 'string' && body.brand.trim() ? body.brand.trim().toUpperCase() : 'LG';
+  const turnstileToken = typeof body?.turnstileToken === 'string' ? body.turnstileToken.trim() : undefined;
 
-  if (!modelCode || modelCode.length < 3) {
+  if (!modelCode || !MODEL_CODE_PATTERN.test(modelCode)) {
     return new Response(
       JSON.stringify({
         error: 'Please enter a valid model code (e.g. OLED65C3PUA or OLED65CXPUA.AUS).',
       }),
       { status: 400, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
+  const supportedBrand = getAllSupportedBrands().find((b) => b.id.toUpperCase() === brand && b.active);
+  if (!supportedBrand) {
+    return new Response(JSON.stringify({ error: 'Unsupported TV brand.' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Turnstile bot verification (prevents automated catalog spam and outbound fetch amplification)
+  const clientIp = request.headers.get('CF-Connecting-IP') || undefined;
+  const turnstileCheck = await verifyTurnstileToken(turnstileToken, env.TURNSTILE_SECRET_KEY, clientIp, request.url);
+  if (!turnstileCheck.success) {
+    return new Response(
+      JSON.stringify({ error: 'Bot verification check failed. Please refresh and try again.' }),
+      { status: 403, headers: { 'Content-Type': 'application/json' } }
     );
   }
 
@@ -96,10 +120,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       }),
       { status: 201, headers: { 'Content-Type': 'application/json' } }
     );
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message || 'Internal server error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch (err: unknown) {
+    return internalErrorResponse('api/models/add', err, 'Could not add model. Please try again later.');
   }
 };

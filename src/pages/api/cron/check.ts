@@ -37,8 +37,8 @@ export const GET: APIRoute = async ({ request, locals }) => {
   }
 
   const resendApiKey = env.RESEND_API_KEY || '';
-  const emailFrom = env.EMAIL_FROM || 'OwnTheGlass <updates@owntheglass.com>';
-  const appUrl = env.APP_URL || 'https://owntheglass.com';
+  const emailFrom = env.EMAIL_FROM || 'OwnTheGlass <updates@owntheglass.org>';
+  const appUrl = env.APP_URL || 'https://owntheglass.org';
 
   const models = await getAllModels(db);
   const results: any[] = [];

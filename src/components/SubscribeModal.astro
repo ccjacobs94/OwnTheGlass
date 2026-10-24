@@ -1,5 +1,7 @@
 ---
 // SubscribeModal.astro
+const env = (Astro.locals as any).runtime?.env || {};
+const turnstileSiteKey = env.PUBLIC_TURNSTILE_SITE_KEY || '';
 ---
 
 <div id="subscribe-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
@@ -50,7 +52,7 @@
       </div>
 
       <!-- Turnstile container (optional bot challenge) -->
-      <div id="turnstile-container" class="my-2 min-h-[40px] flex justify-center"></div>
+      <div id="turnstile-container" data-sitekey={turnstileSiteKey} class="my-2 min-h-[40px] flex justify-center"></div>
 
       <!-- Message Banner -->
       <div id="subscribe-message" class="text-xs p-3 rounded-lg hidden font-medium"></div>
@@ -74,6 +76,23 @@
 
 <script>
   let currentTurnstileWidgetId: any = null;
+
+  function renderTurnstile() {
+    const container = document.getElementById('turnstile-container');
+    const sitekey = container?.getAttribute('data-sitekey');
+    if (sitekey && typeof (window as any).turnstile?.render === 'function') {
+      if (currentTurnstileWidgetId === null) {
+        try {
+          currentTurnstileWidgetId = (window as any).turnstile.render('#turnstile-container', {
+            sitekey,
+            theme: 'dark',
+          });
+        } catch (e) {
+          console.warn('Turnstile render warning:', e);
+        }
+      }
+    }
+  }
 
   function initSubscribeModal() {
     const modal = document.getElementById('subscribe-modal');
@@ -106,9 +125,14 @@
         if (modal) modal.classList.remove('hidden');
         emailInput?.focus();
 
+        // Ensure Turnstile is rendered when modal opens
+        renderTurnstile();
+
         // Reset Turnstile challenge on re-open if widget exists
         if (currentTurnstileWidgetId !== null && typeof (window as any).turnstile?.reset === 'function') {
-          (window as any).turnstile.reset(currentTurnstileWidgetId);
+          try {
+            (window as any).turnstile.reset(currentTurnstileWidgetId);
+          } catch (_) {}
         }
       });
     });
@@ -127,27 +151,31 @@
     // Form submission
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = emailInput.value.trim();
-      const modelId = modelIdInput.value.trim();
+      const email = emailInput?.value.trim() || '';
+      const modelId = modelIdInput?.value.trim() || '';
 
       if (!email || !modelId) return;
 
       submitBtn.disabled = true;
-      btnText!.textContent = 'Subscribing...';
+      if (btnText) btnText.textContent = 'Subscribing...';
       btnSpinner?.classList.remove('hidden');
       messageEl?.classList.add('hidden');
 
-      // Extract Turnstile challenge token if present in DOM or Turnstile API
-      let turnstileToken: string | undefined = undefined;
-      const turnstileInput = form.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement;
-      if (turnstileInput && turnstileInput.value) {
-        turnstileToken = turnstileInput.value.trim();
-      } else if (typeof (window as any).turnstile?.getResponse === 'function') {
-        const tResp = (window as any).turnstile.getResponse(currentTurnstileWidgetId);
-        if (tResp) turnstileToken = String(tResp).trim();
-      }
-
       try {
+        // Extract Turnstile challenge token if present in DOM or Turnstile API
+        let turnstileToken: string | undefined = undefined;
+        try {
+          const turnstileInput = form.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement;
+          if (turnstileInput && turnstileInput.value) {
+            turnstileToken = turnstileInput.value.trim();
+          } else if (currentTurnstileWidgetId !== null && typeof (window as any).turnstile?.getResponse === 'function') {
+            const tResp = (window as any).turnstile.getResponse(currentTurnstileWidgetId);
+            if (tResp) turnstileToken = String(tResp).trim();
+          }
+        } catch (turnstileErr) {
+          console.warn('Turnstile token extraction error:', turnstileErr);
+        }
+
         const res = await fetch('/api/subscribe', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -166,7 +194,9 @@
           messageEl!.className = 'text-xs p-3 rounded-lg font-medium bg-rose-950/60 border border-rose-500/40 text-rose-300';
           messageEl!.textContent = data.error || 'Failed to subscribe. Please try again.';
           if (currentTurnstileWidgetId !== null && typeof (window as any).turnstile?.reset === 'function') {
-            (window as any).turnstile.reset(currentTurnstileWidgetId);
+            try {
+              (window as any).turnstile.reset(currentTurnstileWidgetId);
+            } catch (_) {}
           }
         }
         messageEl?.classList.remove('hidden');
@@ -176,7 +206,7 @@
         messageEl?.classList.remove('hidden');
       } finally {
         submitBtn.disabled = false;
-        btnText!.textContent = 'Subscribe to Alerts';
+        if (btnText) btnText.textContent = 'Subscribe to Alerts';
         btnSpinner?.classList.add('hidden');
       }
     });

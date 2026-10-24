@@ -6,12 +6,24 @@
     "nodejs_compat"
   ],
   "main": "dist/_worker.js/index.js",
-  "assets": { "directory": "dist" },
+  "assets": {
+    "directory": "dist",
+    "binding": "ASSETS"
+  },
+  "routes": [
+    { "pattern": "owntheglass.org", "custom_domain": true },
+    { "pattern": "www.owntheglass.org", "custom_domain": true }
+  ],
+  "vars": {
+    "APP_URL": "https://owntheglass.org",
+    "EMAIL_FROM": "OwnTheGlass <updates@owntheglass.org>",
+    "PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAE23BRPNwK08oXJZ"
+  },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "owntheglass-db",
       "database_id": "22bc5d06-0db7-4e8c-b9b5-bc9111a380f6"
     }
-  ],
+  ]
 }

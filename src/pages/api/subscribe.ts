@@ -109,17 +109,30 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
     // Dispatch confirmation email via Resend
     const resendApiKey = env.RESEND_API_KEY || '';
-    const emailFrom = env.EMAIL_FROM || 'OwnTheGlass <updates@owntheglass.com>';
+    const emailFrom = env.EMAIL_FROM || 'OwnTheGlass <updates@owntheglass.org>';
     const appUrl = env.APP_URL || new URL(request.url).origin;
 
     if (resendApiKey) {
-      const emailRes = await sendConfirmationEmail(resendApiKey, emailFrom, {
+      let emailRes = await sendConfirmationEmail(resendApiKey, emailFrom, {
         toEmail: email,
         modelName: model.name,
         modelCode: model.model_code,
         confirmationToken: result.confirmationToken,
         appUrl,
       });
+
+      // If domain verification is still pending on Resend, fallback to onboarding@resend.dev
+      if (!emailRes.success && emailRes.error?.includes('domain is not verified')) {
+        console.warn('Domain not verified on Resend. Falling back to onboarding@resend.dev for test delivery.');
+        emailRes = await sendConfirmationEmail(resendApiKey, 'OwnTheGlass <onboarding@resend.dev>', {
+          toEmail: email,
+          modelName: model.name,
+          modelCode: model.model_code,
+          confirmationToken: result.confirmationToken,
+          appUrl,
+        });
+      }
+
       if (!emailRes.success) {
         console.error('Resend dispatch error:', emailRes.error);
       }

@@ -47,23 +47,24 @@ def load_config(config_path: str = CONFIG_PATH) -> AppConfig:
     with open(path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
 
-    # Allow environment variable overrides
-    if "NTFY_TOPIC" in os.environ:
+    # Allow environment variable overrides (only when set to a non-empty value,
+    # so optional docker-compose passthroughs don't blank out config.yaml values)
+    if os.environ.get("NTFY_TOPIC"):
         if "ntfy" not in data:
             data["ntfy"] = {}
         data["ntfy"]["topic"] = os.environ["NTFY_TOPIC"]
 
-    if "NTFY_SERVER_URL" in os.environ:
+    if os.environ.get("NTFY_SERVER_URL"):
         if "ntfy" not in data:
             data["ntfy"] = {}
         data["ntfy"]["server_url"] = os.environ["NTFY_SERVER_URL"]
 
-    if "NTFY_TOKEN" in os.environ:
+    if os.environ.get("NTFY_TOKEN"):
         if "ntfy" not in data:
             data["ntfy"] = {}
         data["ntfy"]["token"] = os.environ["NTFY_TOKEN"]
 
-    if "PORT" in os.environ:
+    if os.environ.get("PORT"):
         if "server" not in data:
             data["server"] = {}
         data["server"]["port"] = int(os.environ["PORT"])

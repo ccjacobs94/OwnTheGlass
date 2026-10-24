@@ -4,9 +4,15 @@ services:
     container_name: lg-firmware-monitor
     restart: unless-stopped
     ports:
-      - "8484:8484"
+      # Bound to localhost by default so the dashboard is NOT exposed on every interface.
+      # To reach it from other devices on your LAN, set BIND_ADDRESS to this machine's LAN IP
+      # in homelab/.env (e.g. BIND_ADDRESS=192.168.1.50). Never port-forward this to the internet.
+      - "${BIND_ADDRESS:-127.0.0.1}:8484:8484"
     environment:
-      - NTFY_TOPIC=chris-lg-tv-firmware
+      # Secrets live in homelab/.env (gitignored), not in this committed file.
+      # Empty values fall back to config.yaml.
+      - NTFY_TOPIC=${NTFY_TOPIC:-}
+      - NTFY_TOKEN=${NTFY_TOKEN:-}
       - CONFIG_PATH=/app/config/config.yaml
     volumes:
       - ./config.yaml:/app/config/config.yaml

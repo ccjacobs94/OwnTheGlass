@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { searchModels, getAllModels } from '../../../lib/db';
+import { internalErrorResponse } from '../../../lib/security';
 
 export const prerender = false;
 
@@ -15,8 +16,8 @@ export const GET: APIRoute = async ({ request, locals }) => {
   }
 
   const url = new URL(request.url);
-  const q = url.searchParams.get('q') || '';
-  const brand = url.searchParams.get('brand') || '';
+  const q = (url.searchParams.get('q') || '').slice(0, 100);
+  const brand = (url.searchParams.get('brand') || '').slice(0, 20);
 
   try {
     let results;
@@ -33,10 +34,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
         'Cache-Control': 'public, max-age=60',
       },
     });
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch (err: unknown) {
+    return internalErrorResponse('api/models/search', err, 'Search failed. Please try again later.');
   }
 };

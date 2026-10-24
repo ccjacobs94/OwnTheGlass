@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getModelById, subscribeEmail } from '../../lib/db';
 import { sendConfirmationEmail } from '../../lib/email';
 import { verifyTurnstileToken } from '../../lib/turnstile';
+import { internalErrorResponse } from '../../lib/security';
 
 export const prerender = false;
 
@@ -74,7 +75,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   // Turnstile bot verification
   const turnstileSecret = env.TURNSTILE_SECRET_KEY;
   const clientIp = request.headers.get('CF-Connecting-IP') || undefined;
-  const turnstileCheck = await verifyTurnstileToken(turnstileToken, turnstileSecret, clientIp);
+  const turnstileCheck = await verifyTurnstileToken(turnstileToken, turnstileSecret, clientIp, request.url);
 
   if (!turnstileCheck.success) {
     return new Response(
@@ -147,10 +148,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message || 'Subscription failed.' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  } catch (err: unknown) {
+    return internalErrorResponse('api/subscribe', err, 'Subscription failed. Please try again later.');
   }
 };
